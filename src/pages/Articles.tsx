@@ -47,7 +47,7 @@ export default function Articles() {
         </div>
 
         {/* Articles List */}
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="grid gap-5 md:grid-cols-2">
           {filteredArticles.map((article, index) => (
             <motion.article
               key={article.id}
