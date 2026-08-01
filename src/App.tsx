@@ -5,6 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Route, Switch, Router as WouterRouter } from 'wouter';
 import { ThemeProvider } from '@/components/ui/ThemeProvider';
 import { Layout } from '@/components/layout/Layout';
+import { ScrollToTop } from '@/components/navigation/ScrollToTop';
 import Home from '@/pages/Home';
 import About from '@/pages/About';
 import Portfolio from '@/pages/Portfolio';
@@ -41,6 +42,7 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+            <ScrollToTop />
             <Router />
           </WouterRouter>
           <Toaster />
