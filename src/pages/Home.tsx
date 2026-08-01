@@ -5,6 +5,7 @@ import { ArrowRight, Map, Cpu, BarChart3, GraduationCap, FileText, Layers, Code2
 import { SiQgis, SiPython, SiJupyter } from 'react-icons/si';
 import { Button } from '@/components/ui/button';
 import { portfolioProjects, articles } from '@/data/content';
+import BuiltWith from '@/built-with/BuiltWith';
 
 const capabilities = [
   {
@@ -79,42 +80,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Ecosystem Section */}
-      <section className="w-full py-16">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-semibold text-center mb-8">Toolchain & Ecosystem</h2>
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12">
-            <div className="flex flex-col items-center gap-2">
-              <SiQgis className="h-10 w-10 text-foreground" />
-              <span className="text-xs text-muted-foreground">QGIS</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <SiPython className="h-10 w-10 text-foreground" />
-              <span className="text-xs text-muted-foreground">Python</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <SiJupyter className="h-10 w-10 text-foreground" />
-              <span className="text-xs text-muted-foreground">Jupyter</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <BarChart3 className="h-10 w-10 text-foreground" />
-              <span className="text-xs text-muted-foreground">Power BI</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <Database className="h-10 w-10 text-foreground" />
-              <span className="text-xs text-muted-foreground">Microsoft 365</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <Code2 className="h-10 w-10 text-foreground" />
-              <span className="text-xs text-muted-foreground">VS Code</span>
-            </div>
-            <div className="flex flex-col items-center gap-2">
-              <Layers className="h-10 w-10 text-foreground" />
-              <span className="text-xs text-muted-foreground">Git</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Built With Section */}
+      <BuiltWith />
 
       {/* Capabilities Section */}
       <section className="w-full py-16 bg-muted/30">

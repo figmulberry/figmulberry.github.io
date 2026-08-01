@@ -1,3 +1,5 @@
+import type { CSSProperties, ComponentType } from 'react';
+
 export type ToolCategory =
   | 'GIS'
   | 'Programming'
@@ -11,38 +13,27 @@ export type ToolLevel =
   | 'Frequent'
   | 'Project-based';
 
+export type ToolIcon = ComponentType<{
+  className?: string;
+  style?: CSSProperties;
+}>;
+
 export interface Tool {
   id: string;
-
   name: string;
-
   tagline: string;
-
   category: ToolCategory;
-
   featured: boolean;
-
   level: ToolLevel;
-
   since: number;
-
   accentColor: string;
-
-  icon: string;
-
+  icon: ToolIcon;
   summary: string;
-
   whereUsed: string[];
-
   projects: string[];
-
   recentlyUsed: string[];
-
   experience: string;
-
   articles: string[];
-
   portfolio: string[];
-
   relatedHref: string;
 }
