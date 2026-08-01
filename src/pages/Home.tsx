@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { ArrowRight, Map, Cpu, BarChart3, GraduationCap, FileText, Layers, Code2, Database } from 'lucide-react';
 import { SiQgis, SiPython, SiJupyter } from 'react-icons/si';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { portfolioProjects, articles } from '@/data/content';
 
@@ -40,69 +39,8 @@ const capabilities = [
   },
 ];
 
-const demoTabs = [
-  {
-    id: 'geoai',
-    label: 'GeoAI',
-    code: `import geopandas as gpd
-import rasterio
-from tensorflow import keras
-
-# Load trained model
-model = keras.models.load_model('road_detector.h5')
-
-# Process satellite imagery
-with rasterio.open('sentinel2.tif') as src:
-    image = src.read()
-    predictions = model.predict(image)
-    
-# Extract road network
-roads_gdf = extract_features(predictions)
-roads_gdf.to_file('detected_roads.gpkg')`,
-    result: 'Road Network Detection',
-    resultDesc: 'Automated extraction of 47.2 km of road network from Sentinel-2 imagery with 94.3% accuracy',
-  },
-  {
-    id: 'python',
-    label: 'Python',
-    code: `from qgis.core import QgsProject, QgsVectorLayer
-import processing
-
-# Batch processing workflow
-layers = QgsProject.instance().mapLayers()
-for layer_id, layer in layers.items():
-    if layer.geometryType() == QgsWkbTypes.PolygonGeometry:
-        result = processing.run("native:buffer", {
-            'INPUT': layer,
-            'DISTANCE': 100,
-            'OUTPUT': f'buffered_{layer.name()}.gpkg'
-        })`,
-    result: 'Batch Processing Complete',
-    resultDesc: '12 polygon layers processed with 100m buffer applied. Total features: 3,847',
-  },
-  {
-    id: 'gis',
-    label: 'GIS',
-    code: `-- PostGIS spatial query
-SELECT 
-    parcels.id,
-    parcels.land_use,
-    ST_Area(parcels.geom) / 10000 as area_ha,
-    COUNT(buildings.id) as building_count
-FROM parcels
-LEFT JOIN buildings 
-    ON ST_Within(buildings.geom, parcels.geom)
-WHERE ST_Intersects(parcels.geom, 
-    ST_MakeEnvelope(36.8, -1.3, 36.9, -1.2, 4326))
-GROUP BY parcels.id;`,
-    result: 'Spatial Analysis Result',
-    resultDesc: 'Query returned 234 parcels with total area of 1,847 hectares. Average buildings per parcel: 3.2',
-  },
-];
-
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('geoai');
-
+  
   const featuredProjects = portfolioProjects.slice(0, 3);
   const featuredArticles = articles.slice(0, 3);
 
@@ -138,49 +76,6 @@ export default function Home() {
               </Button>
             </div>
           </motion.div>
-        </div>
-      </section>
-
-      {/* Interactive Demo Panel */}
-      <section className="w-full py-16 bg-muted/30">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-card border border-border rounded-lg overflow-hidden shadow-lg">
-            {/* Left Side - Code */}
-            <div className="bg-[#1e1e1e] dark:bg-[#1e1e1e] p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500" />
-                  <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                  <div className="w-3 h-3 rounded-full bg-green-500" />
-                </div>
-                <span className="text-sm text-gray-400 ml-2 font-mono">analysis.py</span>
-              </div>
-              <pre className="text-sm text-gray-200 font-mono leading-relaxed overflow-x-auto">
-                <code>{demoTabs.find(t => t.id === activeTab)?.code}</code>
-              </pre>
-            </div>
-
-            {/* Right Side - Result with Tabs */}
-            <div className="p-6 flex flex-col">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="mb-6">
-                  {demoTabs.map((tab) => (
-                    <TabsTrigger key={tab.id} value={tab.id}>
-                      {tab.label}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                {demoTabs.map((tab) => (
-                  <TabsContent key={tab.id} value={tab.id} className="flex-1">
-                    <div className="border border-border rounded-lg p-6 bg-muted/30">
-                      <h3 className="text-lg font-semibold mb-2">{tab.result}</h3>
-                      <p className="text-muted-foreground">{tab.resultDesc}</p>
-                    </div>
-                  </TabsContent>
-                ))}
-              </Tabs>
-            </div>
-          </div>
         </div>
       </section>
 
