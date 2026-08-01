@@ -1,44 +1,12 @@
 import React from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
-import { ArrowRight, Map, Cpu, BarChart3, GraduationCap, FileText, Layers, Code2, Database } from 'lucide-react';
+import { ArrowRight, Map, } from 'lucide-react';
 import { SiQgis, SiPython, SiJupyter } from 'react-icons/si';
 import { Button } from '@/components/ui/button';
 import { portfolioProjects, articles } from '@/data/content';
 import BuiltWith from '@/built-with/BuiltWith';
-
-const capabilities = [
-  {
-    icon: Map,
-    title: 'Geospatial Analysis',
-    description: 'Advanced spatial analysis, cartography, and GIS workflows using QGIS, ArcGIS Pro, and PostGIS.',
-  },
-  {
-    icon: Cpu,
-    title: 'GeoAI & Automation',
-    description: 'Machine learning for satellite imagery, object detection, and automated PyQGIS workflows.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Data Analytics',
-    description: 'Interactive dashboards, data visualization, and business intelligence with Power BI and Excel.',
-  },
-  {
-    icon: GraduationCap,
-    title: 'AI Training Workflows',
-    description: 'Training data curation, model evaluation, and technical workflow design for AI systems.',
-  },
-  {
-    icon: FileText,
-    title: 'Technical Documentation',
-    description: 'Clear, reproducible documentation and instructional design for complex technical workflows.',
-  },
-  {
-    icon: Layers,
-    title: 'Dashboard Development',
-    description: 'End-to-end dashboard creation from data modeling to visual design and deployment.',
-  },
-];
+import Capabilities from '@/capabilities/Capabilities';
 
 export default function Home() {
   
@@ -84,29 +52,7 @@ export default function Home() {
       <BuiltWith />
 
       {/* Capabilities Section */}
-      <section className="w-full py-16 bg-muted/30">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-bold text-center mb-12">Capabilities</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {capabilities.map((capability, index) => (
-              <motion.div
-                key={capability.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
-                className="group bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all hover:border-accent/50"
-              >
-                <div className="flex items-center justify-center w-12 h-12 rounded-lg bg-accent/10 mb-4 group-hover:bg-accent/20 transition-colors">
-                  <capability.icon className="h-6 w-6 text-accent" />
-                </div>
-                <h3 className="text-lg font-semibold mb-2">{capability.title}</h3>
-                <p className="text-sm text-muted-foreground">{capability.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <Capabilities />
 
       {/* Portfolio Preview */}
       <section className="w-full py-16">
