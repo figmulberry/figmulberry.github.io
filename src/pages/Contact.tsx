@@ -1,92 +1,251 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Github, Linkedin, Youtube } from 'lucide-react';
+import React, { useState } from 'react';
+import { Link } from 'wouter';
+import {
+  Github,
+  Linkedin,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Youtube,
+} from 'lucide-react';
 
-const contactMethods = [
-  {
-    icon: Github,
-    label: 'GitHub',
-    value: '@mosesthiongo',
-    href: 'https://github.com/mosesthiongo',
-    description: 'Open-source projects and code repositories',
-  },
-  {
-    icon: Linkedin,
-    label: 'LinkedIn',
-    value: 'Moses Thiongo',
-    href: 'https://linkedin.com/in/mosesthiongo',
-    description: 'Professional network and updates',
-  },
-  {
-    icon: Youtube,
-    label: 'YouTube',
-    value: '@thekalabash',
-    href: 'https://youtube.com/@thekalabash',
-    description: 'Tutorials and technical demonstrations',
-  },
-  {
-    icon: Mail,
-    label: 'Email',
-    value: 'hello@mosesthiongo.com',
-    href: 'mailto:hello@mosesthiongo.com',
-    description: 'Direct professional inquiries',
-  },
-];
+const contactDetails = {
+  email: 'kamusaley@gmail.com',
+  location: 'Nairobi, Kenya',
+  github: 'https://github.com/figmulberry',
+  linkedin: 'https://www.linkedin.com/in/mkthiongo/',
+  youtube: 'https://www.youtube.com/@thekalabashmosaics',
+  discord: '#',
+  brand: 'The Kalabash Mosaics',
+};
 
 export default function Contact() {
+  const [sent, setSent] = useState(false);
+
   return (
-    <div className="w-full py-16">
-      <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">Contact</h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Connect for collaboration, consulting inquiries, or to discuss geospatial projects
+    <div className="w-full">
+      {/* Page Header */}
+      <section className="border-b border-border bg-muted/30">
+        <div className="container mx-auto max-w-7xl px-4 py-14 sm:px-6 md:py-16 lg:px-8">
+          <p className="mb-3 font-mono text-xs uppercase tracking-[0.18em] text-accent">
+            Contact
           </p>
-        </motion.div>
 
-        {/* Contact Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {contactMethods.map((method, index) => (
-            <motion.a
-              key={method.label}
-              href={method.href}
-              target={method.href.startsWith('http') ? '_blank' : undefined}
-              rel={method.href.startsWith('http') ? 'noopener noreferrer' : undefined}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="group bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all hover:border-accent/50"
+          <h1 className="max-w-3xl text-3xl font-bold tracking-tight md:text-4xl">
+            Start a conversation
+          </h1>
+
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
+            Available for geospatial analysis, automation, analytics, AI evaluation,
+            and documentation engagements.
+          </p>
+        </div>
+      </section>
+
+      {/* Contact Form and Details */}
+      <section className="w-full">
+        <div className="container mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+            <form
+              className="rounded-lg border border-border bg-card p-6 shadow-sm"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setSent(true);
+              }}
             >
-              <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
-                  <method.icon className="h-6 w-6 text-accent" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-1 group-hover:text-accent transition-colors">
-                    {method.label}
-                  </h3>
-                  <p className="text-sm font-mono text-accent mb-2">{method.value}</p>
-                  <p className="text-sm text-muted-foreground">{method.description}</p>
-                </div>
-              </div>
-            </motion.a>
-          ))}
-        </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="block text-sm">
+                  <span className="font-medium">Name</span>
 
-        {/* Additional Info */}
-        <div className="bg-card border border-border rounded-lg p-8 text-center">
-          <h2 className="text-xl font-semibold mb-3">Collaboration & Consulting</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Available for geospatial analysis projects, GeoAI consulting, training workshops, and technical content creation. 
-            Particularly interested in projects involving QGIS, Python automation, remote sensing, and reproducible spatial workflows.
-          </p>
+                  <input
+                    required
+                    name="name"
+                    className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
+                  />
+                </label>
+
+                <label className="block text-sm">
+                  <span className="font-medium">Email</span>
+
+                  <input
+                    required
+                    type="email"
+                    name="email"
+                    className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
+                  />
+                </label>
+              </div>
+
+              <label className="mt-4 block text-sm">
+                <span className="font-medium">Subject</span>
+
+                <input
+                  name="subject"
+                  className="mt-1.5 w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
+                />
+              </label>
+
+              <label className="mt-4 block text-sm">
+                <span className="font-medium">Message</span>
+
+                <textarea
+                  required
+                  name="message"
+                  rows={6}
+                  className="mt-1.5 w-full resize-y rounded-md border border-input bg-background px-3 py-2 text-sm outline-none transition-colors focus:border-primary"
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="mt-5 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                Send message
+              </button>
+
+              {sent && (
+                <p
+                  role="status"
+                  className="mt-3 text-sm text-primary"
+                >
+                  Thanks — this form is not connected to mail delivery yet. Email{' '}
+                  <a
+                    href={`mailto:${contactDetails.email}`}
+                    className="font-medium hover:underline"
+                  >
+                    {contactDetails.email}
+                  </a>{' '}
+                  directly in the meantime.
+                </p>
+              )}
+            </form>
+
+            <aside className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+                <h2 className="text-sm font-bold uppercase tracking-wide text-accent">
+                  Direct
+                </h2>
+
+                <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <Mail className="h-4 w-4" />
+
+                    <a
+                      href={`mailto:${contactDetails.email}`}
+                      className="hover:text-primary"
+                    >
+                      {contactDetails.email}
+                    </a>
+                  </li>
+
+                  <li className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+
+                    <span>{contactDetails.location}</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+                <h2 className="text-sm font-bold uppercase tracking-wide text-accent">
+                  Elsewhere
+                </h2>
+
+                <ul className="mt-3 space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <Github className="h-4 w-4" />
+
+                    <a
+                      href={contactDetails.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-primary"
+                    >
+                      GitHub
+                    </a>
+                  </li>
+
+                  <li className="flex items-center gap-2">
+                    <Linkedin className="h-4 w-4" />
+
+                    <a
+                      href={contactDetails.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-primary"
+                    >
+                      LinkedIn
+                    </a>
+                  </li>
+
+                  <li className="flex items-center gap-2">
+                    <Youtube className="h-4 w-4" />
+
+                    <a
+                      href={contactDetails.youtube}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-primary"
+                    >
+                      {contactDetails.brand}
+                    </a>
+                  </li>
+
+                  <li className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+
+                    <a
+                      href={contactDetails.discord}
+                      aria-disabled="true"
+                      className="cursor-not-allowed text-muted-foreground/70"
+                      onClick={(event) => event.preventDefault()}
+                    >
+                      Discord — coming soon
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </aside>
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* Explore My Work */}
+      <section className="border-y border-border bg-muted/30">
+        <div className="container mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 md:py-16 lg:px-8">
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">
+            Explore My Work
+          </h2>
+
+          <p className="mx-auto mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground">
+            Dive into my portfolio of geospatial projects, read technical articles,
+            or review my professional background.
+          </p>
+
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/portfolio"
+              className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              Portfolio
+            </Link>
+
+            <Link
+              href="/articles"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+            >
+              Articles
+            </Link>
+
+            <Link
+              href="/cv"
+              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-5 py-2.5 text-sm font-semibold text-foreground transition-colors hover:border-primary/50 hover:text-primary"
+            >
+              CV
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
