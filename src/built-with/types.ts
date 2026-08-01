@@ -6,6 +6,11 @@ export type ToolCategory =
   | 'Development'
   | 'Electronics';
 
+export type ToolLevel =
+  | 'Daily'
+  | 'Frequent'
+  | 'Project-based';
+
 export interface Tool {
   id: string;
 
@@ -15,23 +20,29 @@ export interface Tool {
 
   category: ToolCategory;
 
+  featured: boolean;
+
+  level: ToolLevel;
+
+  since: number;
+
   accentColor: string;
 
   icon: string;
 
-  overview: string;
+  summary: string;
 
   whereUsed: string[];
 
-  featuredWork: string[];
+  projects: string[];
 
   recentlyUsed: string[];
 
   experience: string;
 
-  relatedArticles: string[];
+  articles: string[];
 
-  relatedProjects: string[];
+  portfolio: string[];
 
   relatedHref: string;
 }
