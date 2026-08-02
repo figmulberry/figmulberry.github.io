@@ -8,7 +8,9 @@ export const portfolioProjects = [
     tools: ['QGIS', 'Python', 'Rasterio', 'GDAL'],
     date: '2026-05',
     slug: 'urban-land-use-detection',
+    thumbnail: '/project-thumbnails/placeholder.webp',
   },
+  
   {
     id: 2,
     title: 'Regional Water Quality Monitoring Dashboard',
@@ -17,6 +19,7 @@ export const portfolioProjects = [
     tools: ['ArcGIS Pro', 'Python', 'PostgreSQL/PostGIS'],
     date: '2026-03',
     slug: 'water-quality-monitoring',
+    thumbnail: '/project-thumbnails/placeholder.webp',
   },
   {
     id: 3,
@@ -26,6 +29,7 @@ export const portfolioProjects = [
     tools: ['QGIS', 'Python', 'Scikit-learn'],
     date: '2026-01',
     slug: 'agricultural-suitability',
+    thumbnail: '/project-thumbnails/placeholder.webp',
   },
   // GeoAI & Automation
   {

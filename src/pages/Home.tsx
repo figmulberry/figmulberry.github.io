@@ -54,45 +54,122 @@ export default function Home() {
       {/* Capabilities Section */}
       <Capabilities />
 
-      {/* Portfolio Preview */}
-      <section className="w-full py-16">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">Featured Projects</h2>
-            <Button asChild variant="ghost">
-              <Link href="/portfolio">
-                View All <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
+{/* Portfolio Preview */}
+<section className="w-full py-16">
+  <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="mb-8 flex items-center justify-between">
+      <h2 className="text-3xl font-bold">Featured Projects</h2>
+
+      <Button asChild variant="ghost">
+        <Link href="/portfolio">
+          View All <ArrowRight className="ml-2 h-4 w-4" />
+        </Link>
+      </Button>
+    </div>
+
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {featuredProjects.map((project) => (
+        <Link
+          key={project.id}
+          href={`/portfolio/${project.slug}`}
+          className="
+            group
+            block
+            overflow-hidden
+            rounded-lg
+            border
+            border-border
+            bg-card
+            transition-all
+            hover:border-accent/50
+            hover:shadow-lg
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-ring
+            focus-visible:ring-offset-2
+            focus-visible:ring-offset-background
+          "
+          aria-label={`Read more about ${project.title}`}
+        >
+          {/* Gradient thumbnail stage */}
+          <div className="bg-gradient-to-br from-accent/20 to-muted px-5 pt-5">
+            <div className="relative aspect-[16/10] overflow-hidden">
+              <img
+                src={project.thumbnail ?? '/project-thumbnails/placeholder.webp'}
+                alt={`${project.title} project thumbnail`}
+                width={800}
+                height={450}
+                loading="lazy"
+                className="block h-full w-full object-cover"
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredProjects.map((project) => (
-              <div
-                key={project.id}
-                className="group bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all hover:border-accent/50"
-              >
-                <div className="h-48 bg-gradient-to-br from-accent/20 to-muted" />
-                <div className="p-6">
-                  <div className="inline-block px-2 py-1 text-xs font-medium bg-accent/10 text-accent rounded mb-3">
-                    {project.category}
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2 group-hover:text-accent transition-colors">
-                    {project.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {project.tools.map((tool) => (
-                      <span key={tool} className="text-xs px-2 py-1 bg-muted rounded">
-                        {tool}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
+
+          {/* Project content */}
+          <div className="relative z-10 -mt-px bg-card p-6">
+            <div
+              className="
+                mb-3
+                inline-block
+                rounded
+                bg-accent/10
+                px-2
+                py-1
+                text-xs
+                font-medium
+                text-accent
+              "
+            >
+              {project.category}
+            </div>
+
+            <h3
+              className="
+                mb-2
+                text-lg
+                font-semibold
+                transition-colors
+                group-hover:text-accent
+              "
+            >
+              {project.title}
+            </h3>
+
+            <p className="mb-4 text-sm leading-relaxed text-muted-foreground">
+              {project.description}
+            </p>
+
+            <div className="mb-5 flex flex-wrap gap-2">
+              {project.tools.map((tool) => (
+                <span
+                  key={tool}
+                  className="rounded bg-muted px-2 py-1 text-xs"
+                >
+                  {tool}
+                </span>
+              ))}
+            </div>
+
+            <span
+              className="
+                inline-flex
+                items-center
+                text-sm
+                font-medium
+                text-accent
+                transition-transform
+                duration-200
+                group-hover:translate-x-1
+              "
+            >
+              Read more →
+            </span>
           </div>
-        </div>
-      </section>
+        </Link>
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Articles Preview */}
       <section className="w-full py-16 bg-muted/30">
