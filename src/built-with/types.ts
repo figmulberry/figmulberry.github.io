@@ -1,4 +1,7 @@
-import type { CSSProperties, ComponentType } from 'react';
+import type {
+  CSSProperties,
+  ComponentType,
+} from 'react';
 
 export type ToolCategory =
   | 'GIS'
@@ -28,7 +31,18 @@ export interface Tool {
   since: number;
   accentColor: string;
   icon: ToolIcon;
+
+  /**
+   * Short, inviting homepage copy.
+   * This appears only on the active Built With card.
+   */
+  homepageSummary: string;
+
+  /**
+   * Fuller explanatory copy used by the dialog.
+   */
   summary: string;
+
   whereUsed: string[];
   projects: string[];
   recentlyUsed: string[];
