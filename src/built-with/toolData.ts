@@ -1,7 +1,9 @@
 import {
   BarChart3,
+  BrainCircuit,
   CircuitBoard,
   Code2,
+  Database,
   PanelsTopLeft,
 } from 'lucide-react';
 
@@ -26,8 +28,10 @@ export const toolData: Tool[] = [
     since: 2020,
     accentColor: '#007AC2',
     icon: SiArcgis,
+    homepageSummary:
+      'Enterprise GIS for advanced spatial analysis, mapping, geoprocessing, and spatial data quality.',
     summary:
-      'Enterprise desktop GIS for spatial analysis, mapping, geoprocessing, and spatial data quality.',
+      'Enterprise desktop GIS for spatial analysis, mapping, geoprocessing, cartography, enterprise support, and spatial data quality.',
     whereUsed: [
       'Enterprise GIS',
       'Infrastructure mapping',
@@ -69,8 +73,10 @@ export const toolData: Tool[] = [
     since: 2017,
     accentColor: '#589632',
     icon: SiQgis,
+    homepageSummary:
+      'Open-source GIS for spatial analysis, cartography, automation, and reproducible mapping workflows.',
     summary:
-      'Open-source desktop GIS for spatial analysis, cartography, automation, and reproducible workflows.',
+      'Open-source desktop GIS for spatial analysis, cartography, automation, remote sensing, and reproducible professional workflows.',
     whereUsed: [
       'Spatial analysis',
       'Remote sensing',
@@ -103,6 +109,96 @@ export const toolData: Tool[] = [
   },
 
   {
+    id: 'postgresql-postgis',
+    name: 'PostgreSQL / PostGIS',
+    tagline: 'Spatial Database • SQL • Geospatial Infrastructure',
+    category: 'GIS',
+    featured: true,
+    level: 'Frequent',
+    since: 2018,
+    accentColor: '#336791',
+    icon: Database,
+    homepageSummary:
+      'Spatial databases, SQL analysis, and reliable geospatial data infrastructure for production workflows.',
+    summary:
+      'Relational and spatial database environment for structured data management, spatial SQL, geospatial integration, and production data infrastructure.',
+    whereUsed: [
+      'Spatial databases',
+      'PostGIS analysis',
+      'SQL queries',
+      'Data infrastructure',
+    ],
+    projects: [
+      'Regional Water Quality Monitoring',
+      'Spatial Data Infrastructure',
+      'Geospatial Database Workflows',
+    ],
+    recentlyUsed: [
+      'Spatial SQL',
+      'Database modelling',
+      'GIS data management',
+    ],
+    experience:
+      'Used for structured geospatial data management, spatial querying, and integration with GIS and analytics workflows.',
+    articles: [
+      'PostGIS Spatial Queries',
+      'Geospatial Database Design',
+      'Spatial Data Infrastructure',
+    ],
+    portfolio: [
+      'Regional Water Quality Monitoring',
+      'Spatial Data Infrastructure',
+      'Geospatial Database Workflows',
+    ],
+    relatedHref: '/portfolio',
+  },
+
+  {
+    id: 'machine-learning',
+    name: 'Machine Learning',
+    tagline: 'Scikit-learn • TensorFlow • PyTorch • GeoAI',
+    category: 'AI',
+    featured: true,
+    level: 'Project-based',
+    since: 2019,
+    accentColor: '#FF6F00',
+    icon: BrainCircuit,
+    homepageSummary:
+      'Machine-learning tools for classification, computer vision, model evaluation, and GeoAI workflows.',
+    summary:
+      'Machine-learning packages and workflows for classification, computer vision, model evaluation, satellite analysis, and geospatial AI.',
+    whereUsed: [
+      'Scikit-learn',
+      'TensorFlow',
+      'PyTorch',
+      'Model evaluation',
+    ],
+    projects: [
+      'GeoAI Model Evaluation',
+      'Satellite Image Classification',
+      'Building Footprint Detection',
+    ],
+    recentlyUsed: [
+      'Model evaluation',
+      'Computer vision workflows',
+      'AI training',
+    ],
+    experience:
+      'Applied across geospatial classification, model evaluation, AI training, and reproducible analytical workflows.',
+    articles: [
+      'GeoAI Model Evaluation',
+      'Satellite Classification',
+      'Machine Learning Workflows',
+    ],
+    portfolio: [
+      'GeoAI Model Evaluation',
+      'Satellite Image Classification',
+      'Building Footprint Detection',
+    ],
+    relatedHref: '/portfolio',
+  },
+
+  {
     id: 'python',
     name: 'Python',
     tagline: 'Automation • Spatial Analysis • AI Workflows',
@@ -112,8 +208,10 @@ export const toolData: Tool[] = [
     since: 2018,
     accentColor: '#3776AB',
     icon: SiPython,
+    homepageSummary:
+      'Automation, geospatial processing, analytics, and AI-enabled technical workflow development.',
     summary:
-      'Python for GIS automation, data processing, geospatial analysis, and AI-enabled technical workflows.',
+      'Python for GIS automation, data processing, geospatial analysis, analytical modelling, and AI-enabled technical workflows.',
     whereUsed: [
       'GeoPandas',
       'Rasterio',
@@ -155,8 +253,10 @@ export const toolData: Tool[] = [
     since: 2019,
     accentColor: '#F37626',
     icon: SiJupyter,
+    homepageSummary:
+      'Reproducible notebooks for GeoAI, GIS analysis, experimentation, and technical demonstrations.',
     summary:
-      'Notebook-based environment for reproducible geospatial analysis, experimentation, and documentation.',
+      'Notebook-based environment for reproducible geospatial analysis, experimentation, prototyping, documentation, and AI model evaluation.',
     whereUsed: [
       'Python notebooks',
       'Model experimentation',
@@ -198,8 +298,10 @@ export const toolData: Tool[] = [
     since: 2024,
     accentColor: '#F2C811',
     icon: BarChart3,
+    homepageSummary:
+      'Interactive dashboards, analytical reporting, data storytelling, and business intelligence.',
     summary:
-      'Business intelligence platform for dashboards, reporting, analytics, and Frontier AI training.',
+      'Business intelligence platform for dashboard development, analytical reporting, data modelling, data storytelling, and Frontier AI training.',
     whereUsed: [
       'Dashboard development',
       'Business analytics',
@@ -241,8 +343,10 @@ export const toolData: Tool[] = [
     since: 2016,
     accentColor: '#0078D4',
     icon: PanelsTopLeft,
+    homepageSummary:
+      'Advanced analytics, reporting, documentation, presentations, and structured business workflows.',
     summary:
-      'Advanced Microsoft 365 workflows for analytics, reporting, documentation, and Frontier AI task design.',
+      'Advanced Microsoft 365 workflows for data analysis, reporting, presentations, documentation, database work, and Frontier AI task design.',
     whereUsed: [
       'Excel analytics',
       'PowerPoint reporting',
@@ -284,8 +388,10 @@ export const toolData: Tool[] = [
     since: 2026,
     accentColor: '#2F9E44',
     icon: CircuitBoard,
+    homepageSummary:
+      'PCB libraries, schematic symbols, component packages, footprints, and technical workflow design.',
     summary:
-      'PCB design environment used for component libraries, schematics, footprints, and Frontier AI training.',
+      'PCB design environment used for component libraries, schematic symbols, packages, footprints, board-design workflows, and Frontier AI training.',
     whereUsed: [
       'PCB library creation',
       'Schematic symbols',
@@ -327,8 +433,10 @@ export const toolData: Tool[] = [
     since: 2020,
     accentColor: '#6E5494',
     icon: SiGithub,
+    homepageSummary:
+      'Version control, structured collaboration, deployment, and maintainable technical project delivery.',
     summary:
-      'Version-control and collaboration platform for source management, deployment, and documented development.',
+      'Version-control and collaboration platform for source management, structured branching, deployment, documentation, and maintainable development.',
     whereUsed: [
       'Version control',
       'Structured branching',
@@ -370,8 +478,10 @@ export const toolData: Tool[] = [
     since: 2020,
     accentColor: '#007ACC',
     icon: Code2,
+    homepageSummary:
+      'Focused development for React, TypeScript, Python, GIS, and technical documentation.',
     summary:
-      'Primary development environment for web development, Python, GIS workflows, and technical documentation.',
+      'Primary development environment for React, TypeScript, Python, GIS workflows, source control, and professional technical documentation.',
     whereUsed: [
       'React and TypeScript',
       'Python development',
