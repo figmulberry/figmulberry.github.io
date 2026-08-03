@@ -20,6 +20,7 @@ import { getArticleBySlug } from
 import type {
   SeriesContent,
 } from '@/content/engine/types';
+import { BackToTop } from '@/components/navigation/BackToTop';
 
 type ArticleDetailPageProps = {
   slug: string;
@@ -145,6 +146,8 @@ export default function ArticleDetailPage({
           </aside>
         </div>
       </div>
+
+      <BackToTop />
     </article>
   );
 }
