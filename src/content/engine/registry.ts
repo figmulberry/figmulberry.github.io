@@ -1,12 +1,23 @@
 import { contentRecordSchema } from './schema';
 
+import { topoGridsPart1Article } from
+  '@/content/articles/topo-grids-part-1/article';
+import { historicTopographicMapRecreationSeries } from
+  '@/content/series/historic-topographic-map-recreation/series';
+import { arcgisProTool } from
+  '@/content/tools/arcgis-pro/tool';
+
 import type {
   ArticleContent,
   ContentRecord,
   SeriesContent,
 } from './types';
 
-const sourceRecords: readonly ContentRecord[] = [];
+const sourceRecords: readonly ContentRecord[] = [
+  arcgisProTool,
+  historicTopographicMapRecreationSeries,
+  topoGridsPart1Article,
+];
 
 function validateRegistry(
   records: readonly ContentRecord[],
