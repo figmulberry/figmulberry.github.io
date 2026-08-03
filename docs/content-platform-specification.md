@@ -189,7 +189,6 @@ Articles may additionally contain:
 - `referenceIds`
 - `requirements`
 - `learningObjectives`
-- `relatedProjectIds`
 - `canonicalSource`
 
 Articles are substantial technical publications, tutorials, research notes, or deep dives.
@@ -201,8 +200,6 @@ Blog posts may additionally contain:
 - `category`
 - `body`
 - `readingMinutes`
-- `relatedArticleIds`
-- `relatedProjectIds`
 
 Blogs are lighter, more timely, and more conversational than formal articles.
 
@@ -215,7 +212,6 @@ Projects may additionally contain:
 - `client`
 - `dateStarted`
 - `dateCompleted`
-- `toolIds`
 - `challenge`
 - `approach`
 - `outcomes`
@@ -223,8 +219,6 @@ Projects may additionally contain:
 - `downloads`
 - `repositoryUrl`
 - `liveUrl`
-- `relatedArticleIds`
-- `relatedMediaIds`
 
 ## 9. Media Fields
 
@@ -236,8 +230,6 @@ Media items may additionally contain:
 - `externalUrl`
 - `embedUrl`
 - `transcript`
-- `relatedArticleIds`
-- `relatedProjectIds`
 
 ## 10. Tool Fields
 
