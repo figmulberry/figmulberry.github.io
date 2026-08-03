@@ -45,35 +45,34 @@ export function getOutgoingRelationships(
     return [];
   }
 
-  return source.relationships
-    .filter(
-      (relationship) =>
-        relationshipType === undefined ||
-        relationship.type === relationshipType,
-    )
-    .map((relationship) => {
+  return source.relationships.flatMap(
+    (relationship): ResolvedRelationship[] => {
+      if (
+        relationshipType !== undefined &&
+        relationship.type !== relationshipType
+      ) {
+        return [];
+      }
+
       const target = getContentById(
         records,
         relationship.targetId,
       );
 
       if (!target) {
-        return undefined;
+        return [];
       }
 
-      return {
-        relationship,
-        source,
-        target,
-        direction: 'outgoing' as const,
-      };
-    })
-    .filter(
-      (
-        item,
-      ): item is ResolvedRelationship =>
-        item !== undefined,
-    );
+      return [
+        {
+          relationship,
+          source,
+          target,
+          direction: 'outgoing',
+        },
+      ];
+    },
+  );
 }
 
 export function getIncomingRelationships(

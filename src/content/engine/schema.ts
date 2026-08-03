@@ -185,15 +185,12 @@ export const seriesSchema = contentBaseSchema.extend({
   complete: z.boolean(),
 });
 
-export const contentRecordSchema = z.discriminatedUnion(
-  'contentType',
-  [
-    articleSchema,
-    blogSchema,
-    projectSchema,
-    mediaSchema,
-    toolSchema,
-    topicSchema,
-    seriesSchema,
-  ],
-);
+export const contentRecordSchema = z.union([
+  articleSchema,
+  blogSchema,
+  projectSchema,
+  mediaSchema,
+  toolSchema,
+  topicSchema,
+  seriesSchema,
+]);
