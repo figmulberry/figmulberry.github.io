@@ -1,5 +1,16 @@
-import React from 'react';
-import { ListTree } from 'lucide-react';
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  ChevronDown,
+  ListTree,
+} from 'lucide-react';
+
+import { useActiveHeading } from
+  '@/hooks/useActiveHeading';
 
 import type {
   TableOfContentsItem,
@@ -12,58 +23,156 @@ type ArticleTableOfContentsProps = {
 export function ArticleTableOfContents({
   items,
 }: ArticleTableOfContentsProps) {
+  const [expanded, setExpanded] =
+    useState(true);
+
+  const activeLinkRef =
+    useRef<HTMLAnchorElement>(null);
+
+  const headingIds = useMemo(
+    () => items.map((item) => item.id),
+    [items],
+  );
+
+  const activeId = useActiveHeading(
+    headingIds,
+  );
+
+  useEffect(() => {
+    if (!expanded) {
+      return;
+    }
+
+    activeLinkRef.current?.scrollIntoView({
+      block: 'nearest',
+    });
+  }, [
+    activeId,
+    expanded,
+  ]);
+
   if (items.length === 0) {
     return null;
   }
 
   return (
     <nav
-      aria-labelledby="article-toc-heading"
-      className="rounded-xl border border-border bg-card/70 p-5"
+      aria-label="Article contents"
+      className="border-l-2 border-border bg-background"
     >
-      <div className="mb-4 flex items-center gap-2">
-        <ListTree
-          className="h-4 w-4 text-accent"
+      <button
+        type="button"
+        aria-expanded={expanded}
+        aria-controls="article-contents-list"
+        onClick={() =>
+          setExpanded((current) => !current)
+        }
+        className={[
+          'flex w-full items-center',
+          'justify-between gap-3',
+          'border-b border-border',
+          'px-4 py-3',
+          'text-left',
+          'transition-colors',
+          'hover:bg-muted/45',
+          'focus-visible:outline-none',
+          'focus-visible:ring-2',
+          'focus-visible:ring-inset',
+          'focus-visible:ring-accent',
+        ].join(' ')}
+      >
+        <span className="inline-flex items-center gap-2">
+          <ListTree
+            className="h-4 w-4 text-accent"
+            aria-hidden="true"
+          />
+
+          <span className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground">
+            Contents
+          </span>
+        </span>
+
+        <ChevronDown
+          className={[
+            'h-4 w-4',
+            'transition-transform duration-200',
+            expanded
+              ? 'rotate-180'
+              : 'rotate-0',
+          ].join(' ')}
           aria-hidden="true"
         />
+      </button>
 
-        <h2
-          id="article-toc-heading"
-          className="text-sm font-semibold uppercase tracking-[0.14em] text-foreground"
+      {expanded && (
+        <ol
+          id="article-contents-list"
+          className={[
+            'max-h-[calc(100vh-10rem)]',
+            'space-y-0.5',
+            'overflow-y-auto',
+            'py-2',
+          ].join(' ')}
         >
-          On this page
-        </h2>
-      </div>
+          {items.map((item) => {
+            const active =
+              item.id === activeId;
 
-      <ol className="space-y-1.5">
-        {items.map((item) => (
-          <li
-            key={item.id}
-            className={
-              item.level === 3
-                ? 'pl-4'
-                : undefined
-            }
-          >
-            <a
-              href={`#${item.id}`}
-              className={[
-                'block rounded-md px-2 py-1.5',
-                'transition-colors',
-                'hover:bg-muted hover:text-accent',
-                'focus-visible:outline-none',
-                'focus-visible:ring-2',
-                'focus-visible:ring-accent',
-                item.level === 3
-                  ? 'text-xs text-muted-foreground'
-                  : 'text-sm text-foreground/85',
-              ].join(' ')}
-            >
-              {item.title}
-            </a>
-          </li>
-        ))}
-      </ol>
+            return (
+              <li
+                key={item.id}
+                className={
+                  item.level === 3
+                    ? 'pl-4'
+                    : undefined
+                }
+              >
+                <a
+                  ref={
+                    active
+                      ? activeLinkRef
+                      : undefined
+                  }
+                  href={`#${item.id}`}
+                  aria-current={
+                    active
+                      ? 'location'
+                      : undefined
+                  }
+                  className={[
+                    'block border-l-2',
+                    'px-3 py-2',
+                    'transition-colors',
+                    'focus-visible:outline-none',
+                    'focus-visible:ring-2',
+                    'focus-visible:ring-inset',
+                    'focus-visible:ring-accent',
+                    active
+                      ? [
+                          'border-l-accent',
+                          'bg-accent/10',
+                          'font-semibold',
+                          'text-accent',
+                        ].join(' ')
+                      : [
+                          'border-l-transparent',
+                          'text-foreground/78',
+                          'hover:border-l-border',
+                          'hover:bg-muted/45',
+                          'hover:text-foreground',
+                        ].join(' '),
+                    item.level === 3
+                      ? 'text-xs'
+                      : 'text-sm',
+                  ].join(' ')}
+                >
+                  {item.title}
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      )}
     </nav>
   );
 }
