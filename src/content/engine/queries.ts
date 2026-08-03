@@ -190,3 +190,31 @@ function compareContentDatesDescending(
 
   return left.id.localeCompare(right.id);
 }
+
+export function getArticleBySlug(
+  records: readonly ContentRecord[],
+  slug: string,
+): Extract<
+  ContentRecord,
+  { contentType: 'article' }
+> | undefined {
+  const normalizedSlug = slug.trim();
+
+  const record = records.find(
+    (item) =>
+      item.contentType === 'article' &&
+      (
+        item.slug === normalizedSlug ||
+        item.aliases.includes(normalizedSlug)
+      ),
+  );
+
+  if (
+    !record ||
+    record.contentType !== 'article'
+  ) {
+    return undefined;
+  }
+
+  return record;
+}

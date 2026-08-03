@@ -16,6 +16,9 @@ import Media from '@/pages/Media';
 import Contact from '@/pages/Contact';
 import NotFound from '@/pages/NotFound';
 
+import ArticlePreview from
+  '@/pages/articles/ArticlePreview';
+
 const queryClient = new QueryClient();
 
 function Router() {
@@ -26,6 +29,10 @@ function Router() {
         <Route path="/about" component={About} />
         <Route path="/portfolio" component={Portfolio} />
         <Route path="/articles" component={Articles} />
+        <Route 
+          path="/preview/articles/:slug"
+          component={ArticlePreview}
+        />
         <Route path="/blog" component={Blog} />
         <Route path="/cv" component={CV} />
         <Route path="/media" component={Media} />
