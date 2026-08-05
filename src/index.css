@@ -143,7 +143,8 @@
   --shadow-xl:
     0px 20px 25px -5px rgba(0, 0, 0, 0.1),
     0px 8px 10px -6px rgba(0, 0, 0, 0.1);
-  --shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-2xl:
+    0px 25px 50px -12px rgba(0, 0, 0, 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
@@ -173,8 +174,8 @@
 
   --muted-border: hsl(var(--muted));
   --muted-border: hsl(
-    from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) /
-      alpha
+    from hsl(var(--muted)) h s
+      calc(l + var(--opaque-button-border-intensity)) / alpha
   );
 
   --accent-border: hsl(var(--accent));
@@ -244,8 +245,10 @@
   --chart-4: 210 98% 78%;
   --chart-5: 212 97% 87%;
 
-  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
-  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.4);
+  --shadow-2xs:
+    0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+  --shadow-xs:
+    0px 1px 3px 0px rgba(0, 0, 0, 0.4);
   --shadow-sm:
     0px 1px 2px 0px rgba(0, 0, 0, 0.3),
     0px 1px 3px 0px rgba(0, 0, 0, 0.4);
@@ -261,12 +264,17 @@
   --shadow-xl:
     0px 20px 25px -5px rgba(0, 0, 0, 0.4),
     0px 8px 10px -6px rgba(0, 0, 0, 0.4);
-  --shadow-2xl: 0px 25px 50px -12px rgba(0, 0, 0, 0.5);
+  --shadow-2xl:
+    0px 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 @layer base {
   * {
     @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
@@ -287,6 +295,12 @@
 
   h4 {
     @apply text-xl font-semibold;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 }
 
@@ -364,10 +378,113 @@
   }
 
   .hero-gradient {
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
+    background:
+      linear-gradient(
+        135deg,
+        hsl(var(--background)) 0%,
+        hsl(var(--muted)) 100%
+      );
   }
 
   .dark .hero-gradient {
-    background: linear-gradient(135deg, hsl(220 25% 8%) 0%, hsl(220 22% 10%) 100%);
+    background:
+      linear-gradient(
+        135deg,
+        hsl(220 25% 8%) 0%,
+        hsl(220 22% 10%) 100%
+      );
   }
+}
+
+.article-display-font,
+.article-reading-font {
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI Variable",
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    "Noto Sans",
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    "Noto Color Emoji";
+}
+
+.article-reading-font code,
+.article-reading-font pre {
+  font-family:
+    Menlo,
+    Consolas,
+    "DejaVu Sans Mono",
+    monospace;
+}
+
+/* Article figures: image and caption form one editorial unit. */
+.article-reading-font .article-figure {
+  display: grid;
+  width: 100%;
+  gap: 0.5rem;
+  margin: 2rem 0;
+}
+
+.article-reading-font .article-figure > *,
+.article-reading-font .article-figure p {
+  margin: 0 !important;
+}
+
+.article-reading-font .article-figure-image,
+.article-reading-font .article-figure img {
+  display: block;
+  width: 100%;
+  margin: 0 !important;
+  border-radius: 0;
+}
+
+.article-reading-font .article-figure-caption,
+.article-reading-font .article-figure figcaption {
+  display: block;
+  margin: 0 !important;
+  padding: 0;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+.dark .article-reading-font .article-figure-caption,
+.dark .article-reading-font .article-figure figcaption {
+  color: hsl(var(--foreground) / 0.62);
+}
+
+.article-reading-font .article-figure-caption p,
+.article-reading-font .article-figure figcaption p {
+  margin: 0 !important;
+}
+/* Article callouts
+   Links must remain visibly identifiable without hover. */
+.article-callout a {
+  color: hsl(var(--accent)) !important;
+  font-weight: 600;
+  text-decoration-line: underline !important;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+  transition:
+    color 150ms ease,
+    text-decoration-thickness 150ms ease;
+}
+
+.article-callout a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.article-callout a:focus-visible {
+  border-radius: 0.125rem;
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 3px;
 }

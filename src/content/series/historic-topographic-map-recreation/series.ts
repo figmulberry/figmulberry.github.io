@@ -53,6 +53,7 @@ export const historicTopographicMapRecreationSeries = {
 
   partIds: [
     'article-topo-grids-part-1',
+    'article-topo-grids-part-2'
   ],
 
   complete: false,

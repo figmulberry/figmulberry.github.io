@@ -1,17 +1,66 @@
 import React from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
-import { ArrowRight, Map, } from 'lucide-react';
+import {
+  ArrowRight,
+  Clock3,
+  Map,
+  Tag,
+} from 'lucide-react';
 import { SiQgis, SiPython, SiJupyter } from 'react-icons/si';
 import { Button } from '@/components/ui/button';
-import { portfolioProjects, articles } from '@/data/content';
+import {
+  portfolioProjects,
+} from '@/data/content';
+
+import {
+  contentRegistry,
+} from '@/content/engine/registry';
+
+import {
+  getDailyFeaturedArticles,
+} from '@/lib/content/getDailyFeaturedArticles';
 import BuiltWith from '@/built-with/BuiltWith';
 import Capabilities from '@/capabilities/Capabilities';
 
+function formatPublicationDate(
+  value: string,
+): string {
+  return new Intl.DateTimeFormat(
+    'en',
+    {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      timeZone: 'UTC',
+    },
+  ).format(new Date(value));
+}
+
+function formatArticleAuthors(
+  names: readonly string[],
+): string {
+  if (names.length === 0) {
+    return 'The Kalabash Mosaics';
+  }
+
+  if (names.length === 1) {
+    return names[0];
+  }
+
+  return 'Multiple Authors';
+}
+
 export default function Home() {
   
-  const featuredProjects = portfolioProjects.slice(0, 3);
-  const featuredArticles = articles.slice(0, 3);
+  const featuredProjects =
+    portfolioProjects.slice(0, 3);
+
+  const featuredArticles =
+    getDailyFeaturedArticles(
+      contentRegistry,
+      3,
+    );
 
   return (
     <div className="w-full">
@@ -171,40 +220,271 @@ export default function Home() {
   </div>
 </section>
 
-      {/* Articles Preview */}
-      <section className="w-full py-16 bg-muted/30">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">Recent Articles</h2>
-            <Button asChild variant="ghost">
+      {/* Daily Featured Articles */}
+      <section className="w-full bg-muted/30 py-16">
+        <div
+          className={[
+            'container mx-auto',
+            'max-w-7xl',
+            'px-4 sm:px-6 lg:px-8',
+          ].join(' ')}
+        >
+          <div
+            className={[
+              'mb-8 flex',
+              'items-center',
+              'justify-between',
+              'gap-4',
+            ].join(' ')}
+          >
+            <div>
+              <h2 className="text-3xl font-bold">
+                Featured Articles
+              </h2>
+
+              <p
+                className={[
+                  'mt-2 text-sm',
+                  'text-muted-foreground',
+                ].join(' ')}
+              >
+                Three selections from the
+                published article library,
+                refreshed daily.
+              </p>
+            </div>
+
+            <Button
+              asChild
+              variant="ghost"
+            >
               <Link href="/articles">
-                View All <ArrowRight className="ml-2 h-4 w-4" />
+                View all Articles
+
+                <ArrowRight
+                  className="ml-2 h-4 w-4"
+                  aria-hidden="true"
+                />
               </Link>
             </Button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {featuredArticles.map((article) => (
-              <div
-                key={article.id}
-                className="bg-card border border-border rounded-lg p-6 hover:shadow-lg transition-all hover:border-accent/50"
-              >
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                  <span>{article.date}</span>
-                  <span>·</span>
-                  <span>{article.readingTime}</span>
-                </div>
-                <div className="inline-block px-2 py-1 text-xs font-medium bg-accent/10 text-accent rounded mb-3">
-                  {article.category}
-                </div>
-                <h3 className="text-lg font-semibold mb-2 hover:text-accent transition-colors">
-                  {article.title}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">{article.excerpt}</p>
-                <Link href={`/articles/${article.slug}`} className="text-sm font-medium text-accent hover:underline">
-                  Read Article →
-                </Link>
-              </div>
-            ))}
+
+          <div
+            className={[
+              'grid grid-cols-1',
+              'gap-6',
+              'md:grid-cols-2',
+              'lg:grid-cols-3',
+            ].join(' ')}
+          >
+            {featuredArticles.map(
+              (article) => {
+                const image =
+                  article.thumbnail ??
+                  article.banner;
+
+                const authorLabel =
+                  formatArticleAuthors(
+                    article.authors.map(
+                      (author) =>
+                        author.name,
+                    ),
+                  );
+
+                return (
+                  <Link
+                    key={article.id}
+                    href={`/articles/${article.slug}`}
+                    className={[
+                      'group block',
+                      'overflow-hidden',
+                      'border border-border',
+                      'bg-card',
+                      'transition-[transform,box-shadow,border-color]',
+                      'duration-200 ease-out',
+                      'hover:-translate-y-0.5',
+                      'hover:border-accent/40',
+                      'hover:shadow-md',
+                      'focus-visible:outline-none',
+                      'focus-visible:ring-2',
+                      'focus-visible:ring-ring',
+                      'focus-visible:ring-offset-2',
+                      'focus-visible:ring-offset-background',
+                    ].join(' ')}
+                    aria-label={
+                      `Read ${article.title}`
+                    }
+                  >
+                    <div
+                      className={[
+                        'aspect-[16/9]',
+                        'overflow-hidden',
+                        'bg-muted',
+                      ].join(' ')}
+                    >
+                      {image ? (
+                        <img
+                          src={image.src}
+                          alt={image.alt}
+                          loading="lazy"
+                          className={[
+                            'h-full w-full',
+                            'object-cover',
+                            'transition-transform',
+                            'duration-200 ease-out',
+                            'group-hover:scale-[1.025]',
+                          ].join(' ')}
+                        />
+                      ) : (
+                        <div
+                          className={[
+                            'flex h-full',
+                            'items-center',
+                            'justify-center',
+                            'px-6 text-center',
+                            'text-xs font-semibold',
+                            'uppercase',
+                            'tracking-[0.12em]',
+                            'text-muted-foreground',
+                          ].join(' ')}
+                        >
+                          The Kalabash Mosaics
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-5">
+                      {article.seriesPart !==
+                        undefined && (
+                        <p
+                          className={[
+                            'mb-1',
+                            'text-[0.72rem]',
+                            'font-semibold uppercase',
+                            'tracking-[0.12em]',
+                            'text-accent',
+                          ].join(' ')}
+                        >
+                          Part{' '}
+                          {
+                            article.seriesPart
+                          }
+                        </p>
+                      )}
+
+                      <div
+                        className={[
+                          'flex flex-wrap',
+                          'items-center',
+                          'gap-x-2 gap-y-1',
+                          'text-[0.72rem]',
+                          'leading-5',
+                          'text-muted-foreground',
+                        ].join(' ')}
+                      >
+                        <span>
+                          {authorLabel}
+                        </span>
+
+                        <span aria-hidden="true">
+                          ·
+                        </span>
+
+                        <time
+                          dateTime={
+                            article.publishedAt
+                          }
+                        >
+                          {
+                            formatPublicationDate(
+                              article.publishedAt,
+                            )
+                          }
+                        </time>
+
+                        <span aria-hidden="true">
+                          |
+                        </span>
+
+                        <span
+                          className={[
+                            'inline-flex',
+                            'items-center',
+                            'gap-1.5',
+                          ].join(' ')}
+                        >
+                          <Clock3
+                            className="h-3.5 w-3.5"
+                            aria-hidden="true"
+                          />
+
+                          {
+                            article.readingMinutes
+                          }{' '}
+                          min read
+                        </span>
+                      </div>
+
+                      <div
+                        className={[
+                          'mt-3 inline-flex',
+                          'items-center gap-1.5',
+                          'bg-accent/10',
+                          'px-2 py-1',
+                          'text-xs font-medium',
+                          'text-accent',
+                        ].join(' ')}
+                      >
+                        <Tag
+                          className="h-3 w-3"
+                          aria-hidden="true"
+                        />
+
+                        {article.category}
+                      </div>
+
+                      <h3
+                        className={[
+                          'article-display-font',
+                          'mt-3',
+                          'text-xl font-semibold',
+                          'leading-snug',
+                          'transition-colors',
+                          'group-hover:text-accent',
+                        ].join(' ')}
+                      >
+                        {article.title}
+                      </h3>
+
+                      <p
+                        className={[
+                          'mt-3',
+                          'text-sm leading-6',
+                          'text-muted-foreground',
+                        ].join(' ')}
+                      >
+                        {article.description}
+                      </p>
+
+                      <span
+                        className={[
+                          'mt-5 inline-flex',
+                          'items-center',
+                          'text-sm font-medium',
+                          'text-accent',
+                          'transition-transform',
+                          'duration-200',
+                          'group-hover:translate-x-1',
+                        ].join(' ')}
+                      >
+                        Read Article →
+
+                      </span>
+                    </div>
+                  </Link>
+                );
+              },
+            )}
           </div>
         </div>
       </section>

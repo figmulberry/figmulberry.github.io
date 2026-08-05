@@ -41,6 +41,9 @@ export type Author = {
   id: string;
   name: string;
   affiliation?: string;
+
+  orcid?: string;
+
   profileUrl?: string;
 };
 
@@ -80,13 +83,19 @@ export type ContentBase = {
   thumbnail?: ContentImage;
   banner?: ContentImage;
   relationships: ContentRelationship[];
+  publication?: PublicationMetadata;
   searchKeywords: string[];
 };
 
-export type ArticleDifficulty =
-  | 'Beginner'
-  | 'Intermediate'
-  | 'Advanced';
+export type PublicationMetadata = {
+  licenseUrl?: string;
+
+  openAccessUrl?: string;
+
+  repositoryUrl?: string;
+
+  allowEditSuggestions?: boolean;
+};
 
 export type TableOfContentsItem = {
   id: string;
@@ -98,7 +107,6 @@ export type ArticleContent = ContentBase & {
   contentType: 'article';
   subtitle?: string;
   category: string;
-  difficulty?: ArticleDifficulty;
   seriesId?: string;
   seriesPart?: number;
   readingMinutes: number;

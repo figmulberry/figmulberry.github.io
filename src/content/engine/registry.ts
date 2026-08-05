@@ -2,6 +2,16 @@ import { contentRecordSchema } from './schema';
 
 import { topoGridsPart1Article } from
   '@/content/articles/topo-grids-part-1/article';
+
+import { topoGridsPart2Article } from
+  '@/content/articles/topo-grids-part-2/article';
+
+import { recreatingHistoricScaleBarsArticle } from
+  '@/content/articles/recreating-historic-scale-bars-arcgis-pro/article';
+
+import { foodLossGovernanceArticle } from
+  '@/content/articles/the-spatial-governance-gap-of-food-loss-and-waste/article';
+
 import { historicTopographicMapRecreationSeries } from
   '@/content/series/historic-topographic-map-recreation/series';
 import { arcgisProTool } from
@@ -17,6 +27,9 @@ const sourceRecords: readonly ContentRecord[] = [
   arcgisProTool,
   historicTopographicMapRecreationSeries,
   topoGridsPart1Article,
+  topoGridsPart2Article,
+  recreatingHistoricScaleBarsArticle,
+  foodLossGovernanceArticle,
 ];
 
 function validateRegistry(

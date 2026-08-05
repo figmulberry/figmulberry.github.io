@@ -1,4 +1,5 @@
 import React from 'react';
+
 import {
   CalendarDays,
   Clock3,
@@ -6,14 +7,28 @@ import {
   UserRound,
 } from 'lucide-react';
 
+import {
+  ArticleActions,
+} from '@/components/content/article/ArticleActions';
+
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+
 import type {
   ArticleContent,
+  Author,
 } from '@/content/engine/types';
 
 type ArticleHeaderProps = {
   article: ArticleContent;
   seriesTitle?: string;
 };
+
+const metadataTextClass =
+  'text-[0.72rem] leading-5';
 
 function formatPublicationDate(
   value: string,
@@ -29,106 +44,239 @@ function formatPublicationDate(
   ).format(new Date(value));
 }
 
+function OrcidMark() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      className={[
+        'block h-[1.15rem] w-[1.15rem]',
+        'shrink-0 overflow-visible',
+      ].join(' ')}
+    >
+      <circle
+        cx="12"
+        cy="12"
+        r="11"
+        className={[
+          'fill-muted-foreground/70',
+          'transition-colors duration-150',
+          'group-hover:fill-[#a6ce39]',
+          'group-focus-visible:fill-[#a6ce39]',
+        ].join(' ')}
+      />
+
+      <text
+        x="12"
+        y="12.7"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className={[
+          'fill-background',
+          'font-sans text-[8.2px]',
+          'font-bold',
+          'group-hover:fill-white',
+          'group-focus-visible:fill-white',
+        ].join(' ')}
+      >
+        iD
+      </text>
+    </svg>
+  );
+}
+
+function ArticleAuthor({
+  author,
+}: {
+  author: Author;
+}) {
+  return (
+    <span
+      className={[
+        'inline-flex min-h-6',
+        'items-center gap-1.5',
+        'align-middle',
+      ].join(' ')}
+    >
+      <UserRound
+        className="h-3.5 w-3.5 shrink-0"
+        aria-hidden="true"
+      />
+
+      <span>{author.name}</span>
+
+      {author.orcid && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <a
+              href={author.orcid}
+              target="_blank"
+              rel="noreferrer noopener"
+              aria-label={`View ${author.name}'s ORCID profile`}
+              className={[
+                'group inline-flex',
+                'h-6 w-5 flex-none',
+                'items-center justify-center',
+                'self-center align-middle',
+                'focus-visible:outline-none',
+              ].join(' ')}
+            >
+              <OrcidMark />
+            </a>
+          </TooltipTrigger>
+
+          <TooltipContent side="top">
+            View ORCID profile
+          </TooltipContent>
+        </Tooltip>
+      )}
+    </span>
+  );
+}
+
 export function ArticleHeader({
   article,
   seriesTitle,
 }: ArticleHeaderProps) {
-  const authorNames = article.authors
-    .map((author) => author.name)
-    .join(', ');
-
   return (
-    <header className="mb-12">
-      <div className="mb-6 flex flex-wrap items-center gap-2">
-        <span className="rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+    <header className="mb-10">
+      <div
+        className={[
+          'mb-5',
+          'flex flex-wrap',
+          'items-center gap-1.5',
+        ].join(' ')}
+      >
+        <span
+          className={[
+            'inline-flex items-center',
+            'border border-border',
+            'bg-muted/45',
+            'px-2 py-0.5',
+            metadataTextClass,
+            'font-semibold uppercase',
+            'tracking-[0.12em]',
+            'text-muted-foreground',
+          ].join(' ')}
+        >
           {article.category}
         </span>
 
         {seriesTitle && article.seriesPart && (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
-            <Layers3 className="h-3.5 w-3.5" />
+          <span
+            className={[
+              'inline-flex items-center',
+              'gap-1',
+              'border border-accent/30',
+              'bg-accent/10',
+              'px-2 py-0.5',
+              metadataTextClass,
+              'font-medium',
+              'text-accent',
+            ].join(' ')}
+          >
+            <Layers3
+              className="h-3 w-3 shrink-0"
+              aria-hidden="true"
+            />
+
             {seriesTitle} · Part {article.seriesPart}
           </span>
         )}
+      </div>
 
-        {article.difficulty && (
-          <span className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground">
-            {article.difficulty}
-          </span>
+      <div className="max-w-5xl">
+        <h1
+          className={[
+            'article-display-font',
+            'text-[2.15rem]',
+            'font-bold',
+            'leading-[1.08]',
+            'tracking-normal',
+            'text-foreground',
+            'sm:text-[2.6rem]',
+            'lg:text-[3rem]',
+          ].join(' ')}
+        >
+          {article.title}
+        </h1>
+
+        {article.subtitle && (
+          <p
+            className={[
+              'article-display-font',
+              'mt-3 max-w-4xl',
+              'text-base',
+              'font-medium',
+              'leading-snug',
+              'text-accent',
+              'sm:text-lg',
+              'lg:text-xl',
+            ].join(' ')}
+          >
+            {article.subtitle}
+          </p>
         )}
       </div>
 
-      <h1 className="max-w-5xl text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-        {article.title}
-      </h1>
-
-      {article.subtitle && (
-        <p className="mt-4 max-w-4xl text-xl font-medium text-accent sm:text-2xl">
-          {article.subtitle}
-        </p>
-      )}
-
-      <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-        {article.description}
-      </p>
-
-      <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 border-y border-border py-4 text-sm text-muted-foreground">
-        <span className="inline-flex items-center gap-2">
-          <UserRound className="h-4 w-4" />
-          {authorNames}
-        </span>
-
-        <time
-          dateTime={article.publishedAt}
-          className="inline-flex items-center gap-2"
-        >
-          <CalendarDays className="h-4 w-4" />
-          {formatPublicationDate(
-            article.publishedAt,
-          )}
-        </time>
-
-        <span className="inline-flex items-center gap-2">
-          <Clock3 className="h-4 w-4" />
-          {article.readingMinutes} min read
-        </span>
-      </div>
-
-      {article.banner && (
-        <figure className="mt-8 overflow-hidden rounded-2xl border border-border bg-muted">
-          <img
-            src={article.banner.src}
-            alt={article.banner.alt}
-            width={article.banner.width}
-            height={article.banner.height}
-            decoding="async"
-            fetchPriority="high"
-            className="h-auto w-full object-cover"
-          />
-
-          {article.banner.caption && (
-            <figcaption className="border-t border-border px-4 py-3 text-sm text-muted-foreground">
-              {article.banner.caption}
-            </figcaption>
-          )}
-        </figure>
-      )}
-
-      {article.tags.length > 0 && (
+      <div
+        className={[
+          'mt-4',
+          'border-b border-border',
+          'pb-1.5',
+          metadataTextClass,
+          'text-muted-foreground',
+          'md:flex',
+          'md:items-center',
+          'md:justify-between',
+          'md:gap-6',
+        ].join(' ')}
+      >
         <div
-          className="mt-6 flex flex-wrap gap-2"
-          aria-label="Article topics"
+          className={[
+            'flex flex-wrap',
+            'items-center',
+            'gap-x-5 gap-y-2',
+          ].join(' ')}
         >
-          {article.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-md bg-muted px-2.5 py-1 text-xs text-muted-foreground"
-            >
-              {tag}
-            </span>
-          ))}
+          {article.authors.map(
+            (author) => (
+              <ArticleAuthor
+                key={author.id}
+                author={author}
+              />
+            ),
+          )}
+
+          <time
+            dateTime={article.publishedAt}
+            className="inline-flex items-center gap-1.5"
+          >
+            <CalendarDays
+              className="h-3.5 w-3.5 shrink-0"
+              aria-hidden="true"
+            />
+
+            {formatPublicationDate(
+              article.publishedAt,
+            )}
+          </time>
+
+          <span className="inline-flex items-center gap-1.5">
+            <Clock3
+              className="h-3.5 w-3.5 shrink-0"
+              aria-hidden="true"
+            />
+
+            {article.readingMinutes} min read
+          </span>
         </div>
-      )}
+
+        <div className="mt-3 md:mt-0 md:shrink-0">
+          <ArticleActions article={article} />
+        </div>
+      </div>
     </header>
   );
 }

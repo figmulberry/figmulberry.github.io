@@ -1,5 +1,5 @@
 import body from './body.md?raw';
-import bannerUrl from './banner.png';
+import thumbnail from './thumbnail.png';
 
 import { mosesThiongo } from '@/content/shared/authors';
 
@@ -22,7 +22,7 @@ export const topoGridsPart1Article = {
   description:
     'Learn how to recreate historical corner coordinates and graticules from classic topographic maps using ArcGIS Pro.',
 
-  status: 'draft',
+  status: 'published',
 
   publishedAt: '2025-08-07',
   updatedAt: undefined,
@@ -43,20 +43,15 @@ export const topoGridsPart1Article = {
 
   featured: true,
 
-  difficulty: 'Intermediate',
-
   readingMinutes: 7,
 
-  banner: {
-    src: bannerUrl,
-    alt:
-      'Historical topographic map detail showing coordinate and grid styling.',
-  },
 
   thumbnail: {
-    src: bannerUrl,
+    src: thumbnail,
     alt:
-      'Historical topographic map detail representing the Topo Grids article.',
+      'Historical topographic map showing measured grid lines, coordinates, contours, and terrain detail.',
+    width: 3137,
+    height: 1765,
   },
 
   seriesId:
@@ -72,21 +67,6 @@ export const topoGridsPart1Article = {
       level: 2,
     },
     {
-      id: 'what-you-will-learn',
-      title: 'What You Will Learn',
-      level: 2,
-    },
-    {
-      id: 'before-you-begin',
-      title: 'Before You Begin',
-      level: 2,
-    },
-    {
-      id: 'what-you-will-build',
-      title: 'What You Will Build',
-      level: 2,
-    },
-    {
       id: 'introduction',
       title: 'Introduction',
       level: 2,
@@ -94,19 +74,14 @@ export const topoGridsPart1Article = {
     {
       id: 'why-coordinates-grids-and-graticules-matter',
       title:
-        'Why Coordinates, Grids, and Graticules Matter',
+        'Why Coordinates, Grids and Graticules Matter',
       level: 2,
     },
     {
-      id: 'the-legacy-simplicity-of-old-topographic-maps',
+      id: 'the-legacy-simplicity-of-old-topo-maps',
       title:
-        'The Legacy Simplicity of Old Topographic Maps',
+        'The Legacy Simplicity of Old Topo Maps',
       level: 2,
-    },
-    {
-      id: 'measured-grid-label-styles',
-      title: 'Measured-grid label styles',
-      level: 3,
     },
     {
       id: 'corner-coordinates',
@@ -114,84 +89,43 @@ export const topoGridsPart1Article = {
       level: 2,
     },
     {
-      id: 'the-arcgis-pro-default',
-      title: 'The ArcGIS Pro default',
-      level: 3,
-    },
-    {
-      id: 'splitting-the-x-and-y-coordinates',
-      title: 'Splitting the X and Y Coordinates',
+      id: 'splitting-x-and-y-coordinates',
+      title: 'Splitting X and Y Coordinates',
       level: 2,
     },
     {
-      id: 'before-editing',
-      title: 'Before editing',
-      level: 3,
-    },
-    {
-      id: 'separate-x-coordinate',
-      title: 'Separate X coordinate',
-      level: 3,
-    },
-    {
-      id: 'separate-y-coordinate',
-      title: 'Separate Y coordinate',
-      level: 3,
-    },
-    {
-      id: 'removing-directional-clutter',
-      title: 'Removing Directional Clutter',
+      id: 'fixing-directional-clutter-and-padding-minutes',
+      title:
+        'Fixing Directional Clutter and Padding Minutes',
       level: 2,
     },
     {
-      id: 'minute-padding',
-      title: 'Minute Padding',
+      id: 'minute-padding-a-small-detail-that-matters',
+      title:
+        'Minute Padding (A Small Detail That Matters)',
       level: 2,
     },
     {
-      id: 'choosing-ddm-instead-of-dms',
-      title: 'Choosing DDM Instead of DMS',
+      id: 'units-tag-the-ddm-and-dms-switcheroo',
+      title:
+        'Units Tag (The DDM and DMS Switcheroo)',
       level: 2,
     },
     {
-      id: 'mind-your-placement',
-      title: 'Mind Your Placement',
+      id: 'mind-your-placement-x-is-not-ys-cousin',
+      title:
+        "Mind Your Placement (X is Not Y's Cousin)",
       level: 2,
     },
     {
       id: 'graticules-filling-the-gaps-between-degrees',
       title:
-        'Graticules: Filling the Gaps Between Degrees',
+        'Graticules (Filling the Gaps Between Degrees)',
       level: 2,
     },
     {
-      id: 'building-the-minute-marker-tag',
-      title: 'Building the Minute-Marker Tag',
-      level: 2,
-    },
-    {
-      id: 'common-mistakes',
-      title: 'Common Mistakes',
-      level: 2,
-    },
-    {
-      id: 'practical-cartographic-notes',
-      title: 'Practical Cartographic Notes',
-      level: 2,
-    },
-    {
-      id: 'key-takeaways',
-      title: 'Key Takeaways',
-      level: 2,
-    },
-    {
-      id: 'continue-the-series',
-      title: 'Continue the Series',
-      level: 2,
-    },
-    {
-      id: 'conclusion',
-      title: 'Conclusion',
+      id: 'wrapping-up-part-i',
+      title: 'Wrapping Up Part I',
       level: 2,
     },
   ],
@@ -239,6 +173,19 @@ export const topoGridsPart1Article = {
     },
   ],
 
+  publication: {
+  licenseUrl:
+    'https://creativecommons.org/licenses/by/4.0/',
+
+  openAccessUrl:
+    'https://en.wikipedia.org/wiki/Open_access',
+
+  repositoryUrl:
+    'https://github.com/figmulberry',
+
+  allowEditSuggestions: true,
+},
+
   searchKeywords: [
     'ArcGIS Pro graticules',
     'ArcGIS Pro coordinate grids',
@@ -250,6 +197,4 @@ export const topoGridsPart1Article = {
     'map layout',
   ],
 
-  canonicalSource:
-    'https://www.linkedin.com/pulse/reimagining-topo-grids-graticules-arcgis-pro-musa-%CA%88hiong-o-tkm--hwqae/',
 } satisfies ArticleContent;

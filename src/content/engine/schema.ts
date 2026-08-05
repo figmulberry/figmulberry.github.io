@@ -22,6 +22,9 @@ export const authorSchema = z.object({
   id: nonEmptyString,
   name: nonEmptyString,
   affiliation: nonEmptyString.optional(),
+
+  orcid: z.string().url().optional(),
+
   profileUrl: z.string().url().optional(),
 });
 
@@ -54,6 +57,21 @@ export const contentRelationshipSchema = z.object({
   order: z.number().int().nonnegative().optional(),
 });
 
+const publicationMetadataSchema =
+  z.object({
+    licenseUrl:
+      z.string().url().optional(),
+
+    openAccessUrl:
+      z.string().url().optional(),
+
+    repositoryUrl:
+      z.string().url().optional(),
+
+    allowEditSuggestions:
+      z.boolean().optional(),
+  });
+
 export const contentBaseSchema = z.object({
   schemaVersion: z.literal(1),
   id: nonEmptyString,
@@ -74,7 +92,12 @@ export const contentBaseSchema = z.object({
   relationships: z
     .array(contentRelationshipSchema)
     .default([]),
-  searchKeywords: z.array(nonEmptyString).default([]),
+
+  publication:
+    publicationMetadataSchema.optional(),
+
+  searchKeywords:
+    z.array(nonEmptyString).default([]),
 });
 
 const tableOfContentsItemSchema = z.object({
@@ -91,13 +114,6 @@ export const articleSchema = contentBaseSchema
     contentType: z.literal('article'),
     subtitle: nonEmptyString.optional(),
     category: nonEmptyString,
-    difficulty: z
-      .enum([
-        'Beginner',
-        'Intermediate',
-        'Advanced',
-      ])
-      .optional(),
     seriesId: nonEmptyString.optional(),
     seriesPart: z.number().int().positive().optional(),
     readingMinutes: z.number().int().positive(),

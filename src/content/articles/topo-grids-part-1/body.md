@@ -1,342 +1,159 @@
-*Progredimur, cum disciplina, agimus — We move forward, learning, we do.*
+*Progredimur, cum disciplina, agimus | We move forward, learning, we do.*
 
 ## Quick Summary
 
-This article explains how to recreate the corner coordinates and graticule styling commonly found on historical topographic maps using ArcGIS Pro.
+This article explores how to recreate the corner coordinates, measured grids, and graticules commonly found on historical topographic maps using ArcGIS Pro.
 
-You will work with Dynamic Text, coordinate formatting, minute padding, intermediate minute markers, and the visual conventions that distinguish classic topo maps from modern software defaults.
-
-## What You Will Learn
-
-By the end of this article, you will understand how to:
-
-- recognize the role of grids and graticules in historical topographic maps;
-- add corner coordinates to an ArcGIS Pro layout;
-- separate combined X and Y coordinate labels;
-- remove directional letters and negative signs where appropriate;
-- switch coordinate formatting from DMS to DDM;
-- pad single-digit minutes with a leading zero;
-- position X and Y coordinates on the correct map-frame edges;
-- add intermediate minute markers between whole degrees.
-
-## Before You Begin
-
-You should have:
-
-- ArcGIS Pro;
-- an existing map and layout;
-- a map frame already added to the layout;
-- an appropriate coordinate system assigned;
-- basic familiarity with the **Graphics and Text** group;
-- basic familiarity with Dynamic Text.
-
-## What You Will Build
-
-The finished layout will reproduce the restrained coordinate and graticule styling commonly seen on historical topographic maps:
-
-- separate X and Y corner-coordinate labels;
-- degree-and-minute formatting;
-- no unnecessary directional clutter;
-- padded minute values;
-- intermediate 15′, 30′, and 45′ markers;
-- carefully positioned labels around the map frame.
-
-![Historical topographic map layout showing corner coordinates, graticules, and intermediate minute markers.](./images/figure-01-historical-grid-layout.png)
-
-*Typical grids and graticules layout in a historical topographic map.*
+It focuses on Dynamic Text, coordinate formatting, minute padding, directional control, intermediate minute markers, and the small cartographic choices that give old topo maps their deliberate appearance.
 
 ## Introduction
 
-This series began with a look at [historic scale bars](/articles/scale-bars), a small map element with a big job. Now we step into another layer of historical cartography: grids and graticules.
+This series began with looking at **bar scales** ([*see here*](https://doc.esri.com/en/arcgis-pro/latest/help/layouts/grids-and-graticules.html)), a small map element with a big job. Now, we step into another layer of historical cartography: [**grids and graticules**](https://doc.esri.com/en/arcgis-pro/latest/help/layouts/grids-and-graticules.html). These *“lines of legacy”* silently frame every map’s accuracy, and today, we’ll look at how to get them in **ArcGIS Pro**.
 
-These “lines of legacy” silently frame every map’s accuracy. In this article, we will look at how to recreate their historical appearance in ArcGIS Pro.
+If you’re aiming to recreate the *authentic feel of old topo maps* (or get closer to it) using modern cartographic software, grids and graticules are non-negotiable. Let’s dive into these waters. Ready? Perfect!
 
-If you are aiming to reproduce the authentic feel of old topo maps—or at least get much closer to it—using modern cartographic software, grids and graticules are non-negotiable.
+## Why Coordinates, Grids and Graticules Matter
 
-Let us dive into these waters. Ready? Perfect!
+Graticules and grids are more than decorative lines; they:
 
-## Why Coordinates, Grids, and Graticules Matter
+1. Provide a *universal reference system* ensuring spatial accuracy.
 
-Graticules and grids are more than decorative lines. They:
+2. Enable *precise positioning and navigation*, critical for disciplines like surveying, engineering, and many others.
 
-- provide a universal reference system that supports spatial accuracy;
-- enable precise positioning and navigation;
-- support disciplines such as surveying, engineering, field mapping, and many others;
-- connect the visual map layout to its underlying geographic or projected coordinate system.
+ArcGIS Pro offers [five types of grids](https://doc.esri.com/en/arcgis-pro/latest/help/layouts/grids-and-graticules.html#:~:text=There%20are-,five%20types%20of%20grids,-that%20can%20be) that you can add to a map frame. We shall look at some of these in detail later.
 
-ArcGIS Pro provides several grid types that can be added to a map frame. This series focuses on the types and formatting choices most useful when recreating historical topographic-map layouts.
+## The Legacy Simplicity of Old Topo Maps
 
-## The Legacy Simplicity of Old Topographic Maps
+Old topo maps often favored a minimalist but effective style. Some of these bits include:
 
-Old topo maps often favored a minimalist but effective visual style. Common characteristics include:
+1. **Corner Coordinates** with degrees and minutes (no directions like N/S/E/W).
 
-- corner coordinates displayed in degrees and minutes;
-- intermediate minutes marked between whole degrees;
-- restrained coordinate labels;
-- direction indicators such as N, S, E, and W deliberately omitted;
-- negative signs omitted where the surrounding map context already made direction clear.
+2. **Intermediate Minutes** marked between whole degrees.
 
-That apparent simplicity was not accidental. It reduced visual clutter while preserving the information needed to read and navigate the map.
+3. Direction indicators and negative signs? Deliberately omitted.
 
-### Measured-grid label styles
+![Historical topographic map layout showing corner coordinates, graticules, and intermediate minute markers.](./images/figure-01-historical-grid-layout.png)
 
-Measured grids were often displayed as 10,000-meter Universal Transverse Mercator grids, commonly shown in blue.
+*Figure 1. Typical grids and graticules layout in a historical topographic map.*
 
-Historical reference maps generally used one of two treatments:
+Measured grids are often the **10,000-meter** Universal Transverse Mercator (UTM) grid shown in blue. In the topo maps, they appear in two variants:
 
-1. **Truncated zeros** for a cleaner, more compact appearance.
-2. **Fully displayed zeros** for explicit coordinate detail.
+1. With **truncated 0000s** for a minimalist look. *Zeros are not allowed to clutter the party.*
 
-Zeros, apparently, were not always allowed to clutter the party.
+2. Or, with the **0000s fully displayed** for explicit detailing, call it the “Keep everything on the table” approach.
 
 ![Historical measured grid labels with trailing zeros removed.](./images/figure-02-measured-grid-truncated.png)
 
-*Measured-grid labels with truncated zeros.*
+*Figure 2. Measured grids with truncated 0000s.*
 
 ![Historical measured grid labels displaying all four trailing zeros.](./images/figure-03-measured-grid-full.png)
 
-*Measured-grid labels with the full zeros retained.*
+*Figure 3. Measured grids displaying full 0000s.*
 
-For my map project, I retained the four zeros in grey while allowing the main grid digits to remain blue. The result balances visual clarity with a quiet nod to historical cartographic tradition.
+For my map project, I chose to **retain the 0000s** *set in grey for a quiet nod to tradition*, while the main grid digits shine in blue, striking a balance between visual clarity and cartographic heritage. Blame it on the curious child in me.
 
-Blame it on the curious child in me.
+It is worth noting that some reference maps also include grids showing measurements in feet, like the example on the left side of Figure 3 above. I have these in my map as well, but I won’t dive into them here. I’ll leave that to my curious ones to explore and master on their own to uncover new layers in your mapmaking journey.
 
 > **Note**
 >
-> Some historical reference maps also include grid measurements in feet. Those grids are present in my own map, but they are outside the scope of this article.
+> The measured grids shown in feet are part of the reference map, but they are outside the focus of this article.
 
 ## Corner Coordinates
 
-Corner coordinates define the four edges of the map:
+Corner coordinates define the map’s four edges: **Upper Left, Upper Right, Lower Left, Lower Right**. In ArcGIS Pro, you add these via **Dynamic Text** found in the **Graphics and Text** group.
 
-- upper left;
-- upper right;
-- lower left;
-- lower right.
-
-In ArcGIS Pro, you can add these using **Dynamic Text** from the **Graphics and Text** group.
-
-### The ArcGIS Pro default
-
-When corner coordinates are first added, ArcGIS Pro commonly combines the X and Y values into one label. That is convenient, but it does not match the separated coordinate treatment used on many classic topo maps.
+When added, ArcGIS Pro combines the **X** and **Y** into a single label, which is handy but not in line with the classic topo map style. These need to be changed to achieve the classic old style.
 
 ![Default ArcGIS Pro corner-coordinate labels with X and Y values combined.](./images/figure-04-default-combined-coordinates.png)
 
-*ArcGIS Pro's default combined X and Y corner coordinates.*
+*Figure 4. Corner coordinates (default combined X and Y) in ArcGIS Pro.*
 
-## Splitting the X and Y Coordinates
+## Splitting X and Y Coordinates
 
-To reproduce the historical layout, split the X and Y values into separate Dynamic Text elements.
-
-This requires editing the Dynamic Text tags in the **Element pane**, using **Text View**.
-
-### Before editing
+To match the old style, split the X and Y into separate elements. This requires editing the Dynamic Text tags in the Element Pane (Text View).
 
 ![ArcGIS Pro Dynamic Text tag before separating X and Y coordinates.](./images/figure-05-dynamic-text-before.png)
 
-*Dynamic Text before editing, with the X and Y coordinate values combined.*
-
-### Separate X coordinate
+*Figure 5. Dynamic Text tag before editing (combined X and Y).*
 
 ![ArcGIS Pro Dynamic Text tag configured to display the X coordinate separately.](./images/figure-06-dynamic-text-x.png)
 
-*Dynamic Text after isolating the X coordinate.*
-
-### Separate Y coordinate
+*Figure 6. Dynamic Text tag after splitting the X coordinate.*
 
 ![ArcGIS Pro Dynamic Text tag configured to display the Y coordinate separately.](./images/figure-07-dynamic-text-y.png)
 
-*Dynamic Text after isolating the Y coordinate.*
+*Figure 7. Dynamic Text tag after splitting the Y coordinate.*
 
 > **Tip**
 >
-> Separate X and Y before investing time in detailed formatting. It saves a surprising amount of rework later.
+> Split the X and Y coordinates before applying the detailed formatting. This avoids repeating the same formatting work later.
 
-## Removing Directional Clutter
+## Fixing Directional Clutter and Padding Minutes
 
-Historical topo maps frequently omitted directional letters and negative signs where the map context already made orientation clear.
+Old topo maps avoided directional labels and negative signs. Apparently, even the old maps had strong opinions about staying anonymously positive. Here’s how you replicate that:
 
-Depending on the coordinate and map location, configure the Dynamic Text tag to suppress unwanted directional information.
+1. Disable directions with *showDirections="False"* but to others;
 
-Typical settings include:
-
-```text
-showDirections="False"
-```
-
-or, where required:
-
-```text
-showDirections="None"
-```
+2. They eliminate negative signs by setting [*showDirections="None"*](https://doc.esri.com/en/arcgis-pro/latest/help/layouts/grid-label-tags.html#:~:text=showDirections,-Show%20the%20cardinal%20point) if it’s on the west.
 
 > **Important**
 >
-> Test the result against the actual map extent. Directional formatting that works for one coordinate position may not produce the same result on another edge or hemisphere.
+> Review the result on every map-frame edge. A direction setting that works for one coordinate position may behave differently elsewhere.
 
-Apparently, even old maps had strong opinions about staying anonymously positive.
+## Minute Padding (A Small Detail That Matters)
 
-## Minute Padding
+Topo maps consistently padded single-digit minutes with a leading zero (e.g., “05” instead of “5”). Achieve this by using [*padMinutes="True"*](https://doc.esri.com/en/arcgis-pro/latest/help/layouts/grid-label-tags.html#:~:text=padMinutes,-Show%20two%20digits%20for%20all%20minute%20values).
 
-Topo maps consistently padded single-digit minute values with a leading zero.
+*Still following? Great, because even though we’re in the weeds of grid minutiae, we haven’t lost our bearings yet!* Forward we move.
 
-For example:
+## Units Tag (The DDM and DMS Switcheroo)
 
-```text
-05′
-```
-
-rather than:
-
-```text
-5′
-```
-
-Use:
-
-```text
-padMinutes="True"
-```
-
-This is a small adjustment, but the visual difference is significant.
-
-Still following? Great. Even though we are deep in the weeds of grid minutiae, we have not lost our bearings yet. Forward we move.
-
-## Choosing DDM Instead of DMS
-
-Historical topo maps commonly displayed coordinates using degrees and decimal minutes or a degrees-and-minutes presentation, whereas ArcGIS Pro may default to degrees, minutes, and seconds.
-
-Use the units setting:
-
-```text
-units="ddm"
-```
-
-to produce the required presentation.
+Topo maps display coordinates in [*Decimal Degrees Minutes (ddm)*](https://doc.esri.com/en/arcgis-pro/latest/help/layouts/add-and-modify-dynamic-text.html#:~:text=ddm%20%7C%20Decimal%20Minutes), whereas ArcGIS Pro defaults to **Degrees Minutes Seconds (dms)**. This is adjusted with the **units="ddm"** tag.
 
 > **Note**
 >
-> Confirm the exact coordinate convention used by your historical reference before choosing a format. The objective is not merely to imitate an old appearance; it is to reproduce the source map accurately.
+> Confirm the coordinate convention used by the reference map before changing the units tag.
 
-## Mind Your Placement
+## Mind Your Placement (X is Not Y’s Cousin)
 
-Once the labels are correctly formatted, confirm that:
-
-- X coordinates appear on the horizontal edges;
-- Y coordinates appear on the vertical edges.
-
-Swapping them is like wearing your left shoe on your right foot. You may still walk, but your map will limp.
+Once everything is well formatted, double-check that **X coordinates are on the horizontal edges** and **Y coordinates are on the vertical edges**. Swapping them is like wearing your left shoe on the right foot; you’ll still walk, but your map will limp.
 
 ![Correct placement of separated X and Y coordinate labels around a map frame.](./images/figure-08-correct-coordinate-placement.png)
 
-*Correctly positioned X and Y coordinates around the map frame.*
+*Figure 8. Correctly positioned X and Y coordinates in a map frame’s layout.*
 
-## Graticules: Filling the Gaps Between Degrees
+## Graticules (Filling the Gaps Between Degrees)
 
-Between two whole-degree positions—for example, between 109°00′ and 110°00′—historical maps often marked intermediate values at:
+Between every whole degree line, for example between *109°00′* and *110°00′*, old maps typically mark **15′, 30′, and 45′ intervals**, increasing from east to west. To replicate this in ArcGIS Pro:
 
-- 15′;
-- 30′;
-- 45′.
+1. Add a **new graticule grid** from the Map Frames group.
 
-To reproduce this in ArcGIS Pro:
+2. Format it to show **whole minutes only**.
 
-1. Add a new graticule to the map frame.
-2. Configure it to display whole minutes.
-3. Set the interval to match the historical reference.
-4. Review the label direction and ordering on every edge.
-5. Compare the result against the source map before finalizing the layout.
-
-Guessing is for trivia nights, not mapmaking.
+3. Align intervals with your *reference map*. *After all, guessing is for trivia nights, not mapmaking.* Sure?
 
 ![Intermediate 15, 30, and 45 minute markers between whole-degree labels.](./images/figure-09-intermediate-minute-markers.png)
 
-*Intermediate minute markers between whole degrees.*
+*Figure 9. Intermediate minute markers (marked in red) in between whole degrees in blue.*
 
-## Building the Minute-Marker Tag
-
-The minute-marker label can be constructed using two Dynamic Text components:
-
-- `dms.min`, which captures the whole-minute value;
-- `dms.min.sym`, which adds the minute symbol.
+Below is a visualization of what the dynamic tag looks like for the map that I am on.
 
 ![ArcGIS Pro Dynamic Text configuration used to display intermediate minute markers.](./images/figure-10-minute-marker-tag.png)
 
-*Dynamic Text used to generate the minute-marker labels.*
+*Figure 10. A dynamic text tag showing the minute markers in ArcGIS Pro.*
 
-Two tags, one mission—once again proving that cartography is a team sport.
+Here, **two dynamic tags combine forces**:
 
-## Common Mistakes
+1. [*dms.min*](https://doc.esri.com/en/arcgis-pro/latest/help/layouts/add-and-modify-dynamic-text.html#:~:text=dms.min,%27), which captures whole minutes (no direction).
 
-Watch for these common problems:
+2. [*dms.min.sym*](https://doc.esri.com/en/arcgis-pro/latest/help/layouts/add-and-modify-dynamic-text.html#:~:text=dms.min.sym,%27), which adds the minutes symbol (′).
 
-- using DMS when the reference uses DDM;
-- leaving directional letters enabled;
-- retaining negative signs that do not appear in the source;
-- placing X labels on vertical edges;
-- placing Y labels on horizontal edges;
-- forgetting to pad single-digit minutes;
-- estimating grid intervals instead of verifying the historical map;
-- applying one formatting rule without checking all four map-frame corners.
+Two tags, one mission. Once again, proving that **cartography is a team sport**.
 
-## Practical Cartographic Notes
+## Wrapping Up Part I
 
-> **Tip**
->
-> Mind the small details. They carry the big map.
+From bar scales to corner coordinates, and now to the intricate web of graticules, we’ve seen how every line on a topo map is crafted with purpose. Recreating these elements in ArcGIS Pro isn’t just a technical exercise; it’s a return to cartographic craftsmanship where small tweaks hold enormous impact. We’ve handled the corner coordinates and graticule minutiae, but we’re not home yet.
 
-A historical style is rarely achieved through one dramatic setting. It emerges from the accumulation of small, deliberate choices:
+In [***Part II***](/articles/topo-grids-part-2), we’ll roll up our sleeves and tackle the **Measured Grids**, the powerhouse gridlines that structure the projected coordinate system of your map. From crafting complex grid labels to perfecting tick marks and offsets, we’ll look at how to faithfully recreate the subtle but powerful grid aesthetics seen in historical topo maps.
 
-- line weight;
-- label placement;
-- interval spacing;
-- character padding;
-- color restraint;
-- directional conventions;
-- alignment with the reference map.
-
-The software provides the tools. The historical reference provides the standard.
-
-## Key Takeaways
-
-- Grids and graticules support both spatial accuracy and navigation.
-- Historical topo maps often favored restrained coordinate presentation.
-- ArcGIS Pro's default corner coordinates may need to be separated into X and Y elements.
-- DDM, direction suppression, and minute padding strongly influence the historical appearance.
-- X and Y coordinate labels must be positioned on the correct map-frame edges.
-- Intermediate-minute markers help reproduce the visual rhythm of classic topo maps.
-- Small formatting decisions have an outsized cartographic effect.
-
-## Continue the Series
-
-Part I has covered:
-
-- corner coordinates;
-- Dynamic Text;
-- coordinate formatting;
-- minute padding;
-- intermediate graticule markers.
-
-In **Part II**, we will move into measured grids—the projected-coordinate gridlines that structure the map.
-
-We will examine:
-
-- complex grid labels;
-- tick marks;
-- offsets;
-- historical measured-grid styling;
-- methods for recreating the subtle but powerful grid aesthetics found on classic topo maps.
-
-**Next:** *Part II: Crafting Measured Grids — The Final Piece*
-
-## Conclusion
-
-From bar scales to corner coordinates and now to the intricate web of graticules, every line on a topo map is crafted with purpose.
-
-Recreating these elements in ArcGIS Pro is not merely a technical exercise. It is a return to cartographic craftsmanship, where small adjustments can have an enormous visual impact.
-
-We have handled the corner coordinates and graticule minutiae, but we are not home yet.
-
-Part II awaits.
-
-Thank you.
+Thank you!

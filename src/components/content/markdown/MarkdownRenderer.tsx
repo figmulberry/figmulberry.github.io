@@ -1,25 +1,31 @@
 import React, {
   Children,
-  cloneElement,
   isValidElement,
   useMemo,
 } from 'react';
+
 import GithubSlugger from 'github-slugger';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
 import {
+  Link,
+} from 'wouter';
+
+import {
   ArticleCallout,
-} from
-  '@/components/content/markdown/ArticleCallout';
+} from '@/components/content/markdown/ArticleCallout';
 
 import type {
   ArticleCalloutType,
-} from
-  '@/components/content/markdown/ArticleCallout';
+} from '@/components/content/markdown/ArticleCallout';
 
-import { resolveArticleMarkdown } from
-  '@/lib/content/resolveArticleMarkdown';
+import {
+  resolveArticleMarkdown,
+} from '@/lib/content/resolveArticleMarkdown';
+
+import { remarkFigures } from
+  '@/lib/content/remarkFigures';
 
 type MarkdownRendererProps = {
   markdown: string;
@@ -112,7 +118,7 @@ function getNodeText(
 function recognizeCallout(
   value: string,
 ): RecognizedCallout | undefined {
-  const collapsible =
+  const explicitlyCollapsible =
     /\[collapsible\]\s*$/i.test(value);
 
   const normalized = value
@@ -132,10 +138,53 @@ function recognizeCallout(
 
   return {
     ...definition,
+
+    // Every Tip is collapsible automatically.
+    // Other callouts collapse only when explicitly marked.
     collapsible:
-        definition.type === 'tip'
-        ? true: collapsible,
+      definition.type === 'tip'
+        ? true
+        : explicitlyCollapsible,
   };
+}
+
+function findRecognizedCallout(
+  node: React.ReactNode,
+): RecognizedCallout | undefined {
+  const children = Children.toArray(node);
+
+  for (const child of children) {
+    if (
+      !isValidElement<{
+        children?: React.ReactNode;
+      }>(child)
+    ) {
+      continue;
+    }
+
+    if (child.type === 'strong') {
+      const definition = recognizeCallout(
+        getNodeText(
+          child.props.children,
+        ),
+      );
+
+      if (definition) {
+        return definition;
+      }
+    }
+
+    const nestedDefinition =
+      findRecognizedCallout(
+        child.props.children,
+      );
+
+    if (nestedDefinition) {
+      return nestedDefinition;
+    }
+  }
+
+  return undefined;
 }
 
 function renderBlockquote(
@@ -144,108 +193,88 @@ function renderBlockquote(
   const blockChildren =
     Children.toArray(children);
 
-  const firstParagraphIndex =
-    blockChildren.findIndex(
-      (child) =>
-        isValidElement(child) &&
-        child.type === 'p',
-    );
+  let calloutDefinition:
+    | RecognizedCallout
+    | undefined;
 
-  if (firstParagraphIndex < 0) {
-    return (
-      <blockquote>
-        {children}
-      </blockquote>
-    );
-  }
+  let labelParagraphIndex = -1;
 
-  const firstParagraph =
-    blockChildren[firstParagraphIndex];
-
-  if (
-    !isValidElement<{
-      children?: React.ReactNode;
-    }>(firstParagraph)
+  for (
+    let index = 0;
+    index < blockChildren.length;
+    index += 1
   ) {
-    return (
-      <blockquote>
-        {children}
-      </blockquote>
-    );
-  }
+    const child = blockChildren[index];
 
-  const paragraphChildren =
-    Children.toArray(
-      firstParagraph.props.children,
-    );
+    if (
+      !isValidElement<{
+        children?: React.ReactNode;
+      }>(child)
+    ) {
+      continue;
+    }
 
-  const firstInline =
-    paragraphChildren[0];
-
-  if (
-    !isValidElement<{
-      children?: React.ReactNode;
-    }>(firstInline) ||
-    firstInline.type !== 'strong'
-  ) {
-    return (
-      <blockquote>
-        {children}
-      </blockquote>
-    );
-  }
-
-  const definition = recognizeCallout(
-    getNodeText(
-      firstInline.props.children,
-    ),
-  );
-
-  if (!definition) {
-    return (
-      <blockquote>
-        {children}
-      </blockquote>
-    );
-  }
-
-  const remainingInline =
-    paragraphChildren
-      .slice(1)
-      .filter(
-        (child) =>
-          typeof child !== 'string' ||
-          child.trim().length > 0,
+    const definition =
+      findRecognizedCallout(
+        child.props.children,
       );
 
-  const calloutChildren = [
-    ...blockChildren,
-  ];
+    if (definition) {
+      calloutDefinition = definition;
+      labelParagraphIndex = index;
+      break;
+    }
+  }
 
-  if (remainingInline.length === 0) {
-    calloutChildren.splice(
-      firstParagraphIndex,
-      1,
-    );
-  } else {
-    calloutChildren[
-      firstParagraphIndex
-    ] = cloneElement(
-      firstParagraph,
-      undefined,
-      remainingInline,
+  if (
+    !calloutDefinition ||
+    labelParagraphIndex < 0
+  ) {
+    return (
+      <blockquote
+        className={[
+          'article-quotation',
+          'relative',
+        ].join(' ')}
+      >
+        <span
+          aria-hidden="true"
+          className={[
+            'pointer-events-none',
+            'absolute',
+            'left-5 top-2',
+            'text-4xl leading-none',
+            'text-accent/35',
+          ].join(' ')}
+        >
+          ❝
+        </span>
+
+        <div className="pl-7">
+          {children}
+        </div>
+      </blockquote>
     );
   }
+
+  const calloutBody =
+    blockChildren.filter(
+      (
+        _child,
+        index,
+      ) =>
+        index !== labelParagraphIndex,
+    );
 
   return (
     <ArticleCallout
-      type={definition.type}
-      title={definition.title}
+      type={calloutDefinition.type}
+      title={calloutDefinition.title}
       collapsible={
-        definition.collapsible
+        calloutDefinition.collapsible
       }
     >
-      {calloutChildren}
+      {calloutBody}
     </ArticleCallout>
   );
 }
@@ -267,7 +296,8 @@ export function MarkdownRenderer({
   );
 
   const components = useMemo(() => {
-    const slugger = new GithubSlugger();
+    const slugger =
+      new GithubSlugger();
 
     return {
       h2: ({
@@ -323,12 +353,51 @@ export function MarkdownRenderer({
         children?: React.ReactNode;
       }) => {
         const isExternal =
-          href?.startsWith('http://') ||
-          href?.startsWith('https://');
+          href?.startsWith(
+            'http://',
+          ) ||
+          href?.startsWith(
+            'https://',
+          );
+
+        if (
+          !isExternal &&
+          href?.startsWith('/')
+        ) {
+          return (
+            <Link href={href}>
+              {children}
+            </Link>
+          );
+        }
+
+        const linkTitle =
+          href?.includes(
+            'grid-label-tags.html',
+          ) &&
+          href.includes(
+            'showDirections',
+          )
+            ? (
+                'Open the Esri Grid Label Tags ' +
+                'documentation at showDirections'
+              )
+            : href?.includes(
+                  'grid-label-tags.html',
+                ) &&
+                href.includes(
+                  'padMinutes',
+                )
+              ? (
+                  'Open the Esri Grid Label Tags ' +
+                  'documentation at padMinutes'
+                )
+              : undefined;
 
         return (
           <a
             href={href}
+            title={linkTitle}
             target={
               isExternal
                 ? '_blank'
@@ -345,6 +414,26 @@ export function MarkdownRenderer({
         );
       },
 
+      figure: ({
+        children,
+      }: {
+        children?: React.ReactNode;
+      }) => (
+        <figure className="article-figure not-prose">
+          {children}
+        </figure>
+      ),
+
+      figcaption: ({
+        children,
+      }: {
+        children?: React.ReactNode;
+      }) => (
+        <figcaption className="article-figure-capture">
+          {children}
+        </figcaption>
+      ),
+
       img: ({
         src,
         alt,
@@ -357,7 +446,7 @@ export function MarkdownRenderer({
           alt={alt ?? ''}
           loading="lazy"
           decoding="async"
-          className="h-auto w-full rounded-sm border border-border"
+          className="article-figure-image block h-auto w-full border border-border"
         />
       ),
 
@@ -378,20 +467,29 @@ export function MarkdownRenderer({
   return (
     <div
       className={[
+        'article-reading-font',
         'prose prose-neutral',
         'dark:prose-invert',
         'max-w-none',
         'prose-headings:scroll-mt-28',
         'prose-headings:font-semibold',
         'prose-a:text-accent',
-        'prose-a:decoration-accent/40',
-        'hover:prose-a:decoration-accent',
-        'prose-blockquote:border-l-accent',
-        'prose-blockquote:bg-muted/35',
-        'prose-blockquote:px-5',
-        'prose-blockquote:py-3',
-        'prose-blockquote:not-italic',
-        'prose-img:my-8',
+        'prose-a:no-underline',
+        'hover:prose-a:underline',
+        'hover:prose-a:decoration-accent/60',
+        'prose-a:underline-offset-4',
+        'prose-blockquote:relative',
+        'prose-blockquote:border-l-2',
+        'prose-blockquote:border-l-accent/70',
+        'prose-blockquote:bg-transparent',
+        'prose-blockquote:px-6',
+        'prose-blockquote:py-5',
+        'prose-blockquote:italic',
+        'prose-blockquote:text-lg',
+        'prose-blockquote:font-medium',
+        'prose-blockquote:text-foreground/90',
+        'prose-code:font-mono',
+        'prose-pre:font-mono',
         'prose-pre:rounded-sm',
         'prose-pre:overflow-x-auto',
         'prose-table:text-sm',
@@ -400,6 +498,7 @@ export function MarkdownRenderer({
       <ReactMarkdown
         remarkPlugins={[
           remarkGfm,
+          remarkFigures
         ]}
         components={components}
       >

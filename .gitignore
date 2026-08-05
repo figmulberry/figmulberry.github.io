@@ -11,3 +11,13 @@ Thumbs.db
 
 .vscode/
 .idea/
+
+# Local working backups and inspection reports
+.work-snapshots/
+*-inspection.txt
+*-audit.txt
+*-search.txt
+*-search-expanded.txt
+*-preparation.txt
+thumbnail-pattern-comparison.txt
+thumbnail-replacement-inspection.txt

@@ -170,6 +170,7 @@ export function ArticleCallout({
     <aside
       className={[
         'not-prose my-8',
+        'article-callout',
         'overflow-hidden',
         'border-l-4',
         style.border,

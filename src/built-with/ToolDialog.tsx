@@ -19,6 +19,14 @@ import {
   X,
 } from 'lucide-react';
 
+import {
+  contentRegistry,
+} from '@/content/engine/registry';
+
+import {
+  getRelatedArticlesForTool,
+} from '@/lib/content/getRelatedArticlesForTool';
+
 import { toolDialogData } from './toolDialogData';
 import type { Tool } from './types';
 
@@ -33,6 +41,24 @@ export default function ToolDialog({
   open,
   onClose,
 }: ToolDialogProps) {
+  const relatedArticleResult =
+    tool
+      ? getRelatedArticlesForTool(
+          contentRegistry,
+          tool.name,
+          3,
+        )
+      : {
+          articles: [],
+          total: 0,
+        };
+
+  const relatedArticles =
+    relatedArticleResult.articles;
+
+  const relatedArticleCount =
+    relatedArticleResult.total;
+
   const dialogRef = useRef<HTMLDivElement>(null);
 
   const closeButtonRef =
@@ -757,36 +783,82 @@ export default function ToolDialog({
               sm:justify-between
             "
           >
-            <div>
-              <p className="text-sm font-semibold">
-                Related Articles
-              </p>
+            {relatedArticles.length > 0 && (
+              <div>
+                <p className="text-sm font-semibold">
+                  Related Articles
+                </p>
 
-              <div className="mt-2 flex flex-col gap-2">
-                {tool.articles
-                  .slice(0, 2)
-                  .map((article) => (
+                <div className="mt-2 flex flex-col gap-2">
+                  {relatedArticles.map(
+                    (article) => (
+                      <Link
+                        key={article.id}
+                        href={`/articles/${article.slug}`}
+                        onClick={onClose}
+                        className={[
+                          'group/article',
+                          'inline-flex',
+                          'items-start',
+                          'gap-1.5',
+                          'text-xs',
+                          'text-muted-foreground',
+                          'transition-colors',
+                          'hover:text-[var(--dialog-accent)]',
+                          'focus-visible:outline-none',
+                          'focus-visible:ring-2',
+                          'focus-visible:ring-ring',
+                          'focus-visible:ring-offset-2',
+                        ].join(' ')}
+                      >
+                        <span>
+                          {article.title}
+                        </span>
+
+                        <ArrowRight
+                          className={[
+                            'mt-0.5 h-3.5 w-3.5',
+                            'shrink-0',
+                            'transition-transform',
+                            'group-hover/article:translate-x-0.5',
+                          ].join(' ')}
+                          aria-hidden="true"
+                        />
+                      </Link>
+                    ),
+                  )}
+
+                  {relatedArticleCount > 3 && (
                     <Link
-                      key={article}
-                      href="/articles"
+                      href={
+                        `/articles?tag=${encodeURIComponent(
+                          tool.name,
+                        )}`
+                      }
                       onClick={onClose}
-                      className="
-                        inline-flex
-                        items-center
-                        gap-1
-                        text-xs
-                        text-muted-foreground
-                        transition-colors
-                        hover:text-[var(--dialog-accent)]
-                      "
+                      className={[
+                        'mt-1 inline-flex',
+                        'items-center gap-1.5',
+                        'text-xs font-medium',
+                        'text-[var(--dialog-accent)]',
+                        'hover:underline',
+                        'underline-offset-4',
+                        'focus-visible:outline-none',
+                        'focus-visible:ring-2',
+                        'focus-visible:ring-ring',
+                      ].join(' ')}
                     >
-                      {article}
+                      View all {tool.name} articles
 
-                      <ArrowRight className="h-3.5 w-3.5" />
+                      <ArrowRight
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
                     </Link>
-                  ))}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             <Link
               href={tool.relatedHref}
