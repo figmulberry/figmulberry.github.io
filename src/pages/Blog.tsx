@@ -7,7 +7,7 @@ import { blogPosts } from '@/data/content';
 export default function Blog() {
   return (
     <div className="w-full py-16">
-      <div className="container mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -21,7 +21,7 @@ export default function Blog() {
         </motion.div>
 
         {/* Blog Posts */}
-        <div className="space-y-6">
+        <div className="grid gap-5 md:grid-cols-2">
           {blogPosts.map((post, index) => (
             <motion.article
               key={post.id}

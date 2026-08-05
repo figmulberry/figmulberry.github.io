@@ -1,34 +1,109 @@
 import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from '@/components/ui/toaster';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { Route, Switch, Router as WouterRouter } from 'wouter';
-import { ThemeProvider } from '@/components/ui/ThemeProvider';
-import { Layout } from '@/components/layout/Layout';
-import Home from '@/pages/Home';
+
+import {
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
+
+import {
+  Route,
+  Router as WouterRouter,
+  Switch,
+} from 'wouter';
+
+import {
+  Layout,
+} from '@/components/layout/Layout';
+
+import {
+  ScrollToTop,
+} from '@/components/navigation/ScrollToTop';
+
+import {
+  ThemeProvider,
+} from '@/components/ui/ThemeProvider';
+
+import {
+  Toaster,
+} from '@/components/ui/toaster';
+
+import {
+  TooltipProvider,
+} from '@/components/ui/tooltip';
+
 import About from '@/pages/About';
-import Portfolio from '@/pages/Portfolio';
 import Articles from '@/pages/Articles';
 import Blog from '@/pages/Blog';
-import CV from '@/pages/CV';
-import Media from '@/pages/Media';
 import Contact from '@/pages/Contact';
+import CV from '@/pages/CV';
+import Home from '@/pages/Home';
+import Media from '@/pages/Media';
 import NotFound from '@/pages/NotFound';
+import Portfolio from '@/pages/Portfolio';
 
-const queryClient = new QueryClient();
+import ArticlePage from
+  '@/pages/articles/ArticlePage';
+
+import ArticlePreview from
+  '@/pages/articles/ArticlePreview';
+
+const queryClient =
+  new QueryClient();
 
 function Router() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/about" component={About} />
-        <Route path="/portfolio" component={Portfolio} />
-        <Route path="/articles" component={Articles} />
-        <Route path="/blog" component={Blog} />
-        <Route path="/cv" component={CV} />
-        <Route path="/media" component={Media} />
-        <Route path="/contact" component={Contact} />
+        <Route
+          path="/"
+          component={Home}
+        />
+
+        <Route
+          path="/about"
+          component={About}
+        />
+
+        <Route
+          path="/portfolio"
+          component={Portfolio}
+        />
+
+        <Route
+          path="/articles/:slug"
+          component={ArticlePage}
+        />
+
+        <Route
+          path="/articles"
+          component={Articles}
+        />
+
+        <Route
+          path="/preview/articles/:slug"
+          component={ArticlePreview}
+        />
+
+        <Route
+          path="/blog"
+          component={Blog}
+        />
+
+        <Route
+          path="/cv"
+          component={CV}
+        />
+
+        <Route
+          path="/media"
+          component={Media}
+        />
+
+        <Route
+          path="/contact"
+          component={Contact}
+        />
+
         <Route component={NotFound} />
       </Switch>
     </Layout>
@@ -37,12 +112,23 @@ function Router() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark">
+    <QueryClientProvider
+      client={queryClient}
+    >
+      <ThemeProvider
+        defaultTheme="dark"
+      >
         <TooltipProvider>
-          <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
+          <WouterRouter
+            base={import.meta.env.BASE_URL.replace(
+              /\/$/,
+              '',
+            )}
+          >
+            <ScrollToTop />
             <Router />
           </WouterRouter>
+
           <Toaster />
         </TooltipProvider>
       </ThemeProvider>
