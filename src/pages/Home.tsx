@@ -21,7 +21,7 @@ import {
   getDailyFeaturedArticles,
 } from '@/lib/content/getDailyFeaturedArticles';
 import BuiltWith from '@/built-with/BuiltWith';
-import Capabilities from '@/capabilities/Capabilities';
+import CoreCapabilities from '@/core-capabilities/CoreCapabilities';
 
 function formatPublicationDate(
   value: string,
@@ -100,8 +100,8 @@ export default function Home() {
       {/* Built With Section */}
       <BuiltWith />
 
-      {/* Capabilities Section */}
-      <Capabilities />
+      {/* Core Capabilities Section */}
+      <CoreCapabilities />
 
 {/* Portfolio Preview */}
 <section className="w-full py-16">
