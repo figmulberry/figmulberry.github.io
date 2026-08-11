@@ -1,6 +1,5 @@
 import React, {
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -29,8 +28,8 @@ type CapabilityCanvasProps = {
   selectedNodeId:
     string | null;
 
-  selectedFamilyId:
-    CapabilityFamilyId | null;
+  activeFamilyId:
+    CapabilityFamilyId;
 
   onNodeClick: (
     nodeId: string,
@@ -54,8 +53,11 @@ type DisplayNode =
 
 const SAFE_PADDING = 28;
 
+/*
+ * Approved subtle convergence.
+ */
 const FAMILY_CONVERGENCE =
-  0.032;
+  0.075;
 
 const FOCUS_SHIFT =
   0.055;
@@ -83,6 +85,7 @@ const familyNodeIds =
     capabilityFamilies.map(
       (family) => [
         family.id,
+
         new Set(
           family.nodes.map(
             (node) =>
@@ -502,8 +505,8 @@ function createDisplayNodes(
     CanvasNode[],
   selectedNodeId:
     string | null,
-  selectedFamilyId:
-    CapabilityFamilyId | null,
+  activeFamilyId:
+    CapabilityFamilyId,
   width: number,
   height: number,
 ): DisplayNode[] {
@@ -516,32 +519,35 @@ function createDisplayNodes(
         ),
     );
 
-  if (
-    !selectedNodeId ||
-    !selectedFamilyId
-  ) {
-    return nodes;
-  }
-
-  const selectedNode =
+  /*
+   * If there has not been a specific click,
+   * use the active family's primary word as
+   * a gentle convergence focus.
+   */
+  const focalNode =
     nodes.find(
       (node) =>
         node.id ===
         selectedNodeId,
+    ) ??
+    nodes.find(
+      (node) =>
+        node.id ===
+        activeFamilyId,
     );
 
-  if (!selectedNode) {
+  if (!focalNode) {
     return nodes;
   }
 
   const focusShiftX =
     (width / 2 -
-      selectedNode.displayX) *
+      focalNode.displayX) *
     FOCUS_SHIFT;
 
   const focusShiftY =
     (height / 2 -
-      selectedNode.displayY) *
+      focalNode.displayY) *
     FOCUS_SHIFT;
 
   nodes =
@@ -549,12 +555,12 @@ function createDisplayNodes(
       (node) => {
         const sameFamily =
           node.familyId ===
-          selectedFamilyId;
+          activeFamilyId;
 
         const attraction =
           sameFamily &&
           node.id !==
-            selectedNodeId
+            focalNode.id
             ? FAMILY_CONVERGENCE
             : 0;
 
@@ -564,14 +570,14 @@ function createDisplayNodes(
           displayX:
             node.displayX +
             focusShiftX +
-            (selectedNode.displayX -
+            (focalNode.displayX -
               node.displayX) *
               attraction,
 
           displayY:
             node.displayY +
             focusShiftY +
-            (selectedNode.displayY -
+            (focalNode.displayY -
               node.displayY) *
               attraction,
         };
@@ -620,7 +626,7 @@ function pointInsideNode(
 
 export default function CapabilityCanvas({
   selectedNodeId,
-  selectedFamilyId,
+  activeFamilyId,
   onNodeClick,
   onNodeHover,
 }: CapabilityCanvasProps) {
@@ -640,30 +646,6 @@ export default function CapabilityCanvas({
   ] = useState<string | null>(
     null,
   );
-
-  const hoveredFamilyId =
-    useMemo(() => {
-      if (!hoveredNodeId) {
-        return null;
-      }
-
-      for (
-        const family
-        of capabilityFamilies
-      ) {
-        if (
-          family.nodes.some(
-            (node) =>
-              node.id ===
-              hoveredNodeId,
-          )
-        ) {
-          return family.id;
-        }
-      }
-
-      return null;
-    }, [hoveredNodeId]);
 
   useEffect(() => {
     const canvas =
@@ -760,7 +742,7 @@ export default function CapabilityCanvas({
         createDisplayNodes(
           baseNodes,
           selectedNodeId,
-          selectedFamilyId,
+          activeFamilyId,
           width,
           height,
         );
@@ -771,16 +753,10 @@ export default function CapabilityCanvas({
       const darkMode =
         isDarkTheme();
 
-      const interactionFamilyId =
-        hoveredFamilyId ??
-        selectedFamilyId;
-
       const activeFamilyNodeIds =
-        interactionFamilyId
-          ? familyNodeIds.get(
-              interactionFamilyId,
-            )
-          : undefined;
+        familyNodeIds.get(
+          activeFamilyId,
+        );
 
       context.textAlign =
         'center';
@@ -825,26 +801,12 @@ export default function CapabilityCanvas({
           'transparent';
 
         if (
-          !interactionFamilyId
-        ) {
-          context.fillStyle =
-            getNeutralColor(
-              darkMode,
-              node.type ===
-                'primary',
-            );
-
-          context.globalAlpha =
-            node.type ===
-            'primary'
-              ? 0.94
-              : 0.76;
-        } else if (
-          directTarget
+          directTarget &&
+          isFamilyMember
         ) {
           const color =
             getFamilyColor(
-              node.familyId,
+              activeFamilyId,
               darkMode,
             );
 
@@ -869,7 +831,7 @@ export default function CapabilityCanvas({
         ) {
           const color =
             getFamilyColor(
-              interactionFamilyId,
+              activeFamilyId,
               darkMode,
             );
 
@@ -962,9 +924,8 @@ export default function CapabilityCanvas({
     };
   }, [
     hoveredNodeId,
-    hoveredFamilyId,
     selectedNodeId,
-    selectedFamilyId,
+    activeFamilyId,
   ]);
 
   useEffect(() => {

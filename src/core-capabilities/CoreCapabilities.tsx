@@ -51,42 +51,45 @@ export default function CoreCapabilities() {
       > | null
     >(null);
 
-  /*
-   * Pointer refs are the authoritative
-   * interaction state.
-   *
-   * We also keep React state where useful,
-   * but refs prevent stale values during
-   * rapid mount/unmount transitions.
-   */
   const pointerInCloudRef =
     useRef(false);
 
   const pointerInPanelRef =
     useRef(false);
 
+  /*
+   * SINGLE SOURCE OF TRUTH
+   *
+   * This family controls:
+   * - cloud family colour
+   * - collapsed rail identity
+   * - orb colour
+   * - panel content
+   *
+   * It starts as Spatial Analysis.
+   */
   const [
-    selectedNodeId,
-    setSelectedNodeId,
-  ] = useState<string | null>(
-    null,
-  );
-
-  const [
-    selectedFamilyId,
-    setSelectedFamilyId,
-  ] =
-    useState<CapabilityFamilyId | null>(
-      null,
-    );
-
-  const [
-    panelFamilyId,
-    setPanelFamilyId,
+    activeFamilyId,
+    setActiveFamilyId,
   ] =
     useState<CapabilityFamilyId>(
       DEFAULT_FAMILY,
     );
+
+  /*
+   * Exact clicked word.
+   *
+   * This is separate from activeFamilyId.
+   * Hover changes the family.
+   * Click can still establish the precise
+   * focal word used by convergence.
+   */
+  const [
+    selectedNodeId,
+    setSelectedNodeId,
+  ] = useState<string | null>(
+    DEFAULT_FAMILY,
+  );
 
   const [
     panelState,
@@ -102,9 +105,9 @@ export default function CoreCapabilities() {
         capabilityFamilies.findIndex(
           (family) =>
             family.id ===
-            panelFamilyId,
+            activeFamilyId,
         ),
-      [panelFamilyId],
+      [activeFamilyId],
     );
 
   const activeFamily =
@@ -150,14 +153,6 @@ export default function CoreCapabilities() {
 
       collapseTimerRef.current =
         setTimeout(() => {
-          /*
-           * Re-check actual pointer state
-           * when the timer fires.
-           *
-           * This prevents a delayed timer
-           * collapsing the panel after the
-           * visitor has already moved back in.
-           */
           if (
             pointerInCloudRef.current ||
             pointerInPanelRef.current
@@ -190,24 +185,29 @@ export default function CoreCapabilities() {
       nodeId &&
       familyId
     ) {
-      /*
-       * Pointer is actively over a cloud word.
-       */
       pointerInCloudRef.current =
         true;
 
       clearCollapseTimer();
 
-      setPanelFamilyId(
+      /*
+       * NEW RULE:
+       *
+       * Hover commits the family as the
+       * latest active family.
+       *
+       * It does NOT revert when hover ends.
+       */
+      setActiveFamilyId(
         familyId,
       );
 
       /*
-       * Hover previews the relevant family.
+       * We do not change selectedNodeId
+       * on hover.
        *
-       * A pinned panel stays pinned.
-       * Any other state becomes temporary-open,
-       * including the previously CLOSED state.
+       * The exact focal word remains a
+       * click concept.
        */
       setPanelState(
         (current) =>
@@ -220,16 +220,16 @@ export default function CoreCapabilities() {
       return;
     }
 
-    /*
-     * Pointer has left all interactive
-     * cloud words.
-     */
     pointerInCloudRef.current =
       false;
 
     /*
-     * If the visitor has moved directly
-     * into the panel, do not collapse.
+     * IMPORTANT:
+     *
+     * We DO NOT reset activeFamilyId here.
+     *
+     * The last hovered family remains the
+     * visual resting state.
      */
     if (
       !pointerInPanelRef.current
@@ -245,16 +245,19 @@ export default function CoreCapabilities() {
   ) {
     clearCollapseTimer();
 
+    /*
+     * Click also makes that family current,
+     * guaranteeing panel/cloud agreement.
+     */
+    setActiveFamilyId(
+      familyId,
+    );
+
+    /*
+     * Exact word becomes focal target.
+     */
     setSelectedNodeId(
       nodeId,
-    );
-
-    setSelectedFamilyId(
-      familyId,
-    );
-
-    setPanelFamilyId(
-      familyId,
     );
 
     setPanelState(
@@ -284,14 +287,14 @@ export default function CoreCapabilities() {
         wrappedIndex
       ];
 
-    setPanelFamilyId(
+    setActiveFamilyId(
       family.id,
     );
 
-    setSelectedFamilyId(
-      family.id,
-    );
-
+    /*
+     * Family navigation makes the primary
+     * family label the focal node.
+     */
     setSelectedNodeId(
       family.id,
     );
@@ -344,18 +347,10 @@ export default function CoreCapabilities() {
           current ===
           'pinned'
         ) {
-          /*
-           * Returning from pinned to
-           * temporary mode.
-           */
           if (
             !pointerInCloudRef.current &&
             !pointerInPanelRef.current
           ) {
-            /*
-             * Schedule after this state
-             * transition has completed.
-             */
             setTimeout(
               scheduleCollapse,
               0,
@@ -373,14 +368,6 @@ export default function CoreCapabilities() {
   function handleMinimize() {
     clearCollapseTimer();
 
-    /*
-     * IMPORTANT:
-     *
-     * The open panel is about to disappear.
-     * PointerLeave may therefore never fire.
-     *
-     * Reset panel-presence explicitly.
-     */
     pointerInPanelRef.current =
       false;
 
@@ -392,42 +379,24 @@ export default function CoreCapabilities() {
   function handleClose() {
     clearCollapseTimer();
 
-    /*
-     * CRITICAL BUG FIX:
-     *
-     * Clicking X destroys the panel while the
-     * pointer is still physically over it.
-     *
-     * The browser may never send pointerleave
-     * for the element that just unmounted.
-     *
-     * Therefore we explicitly clear its
-     * presence state here.
-     */
     pointerInPanelRef.current =
       false;
 
+    /*
+     * Close hides the details interface,
+     * but DOES NOT clear activeFamilyId.
+     *
+     * The cloud therefore retains the
+     * last active family identity.
+     */
     setPanelState(
       'closed',
-    );
-
-    setSelectedNodeId(
-      null,
-    );
-
-    setSelectedFamilyId(
-      null,
     );
   }
 
   function handleRailClick() {
     clearCollapseTimer();
 
-    /*
-     * Explicit manual opening.
-     *
-     * Hovering the rail still does nothing.
-     */
     pointerInPanelRef.current =
       false;
 
@@ -488,8 +457,8 @@ export default function CoreCapabilities() {
               selectedNodeId={
                 selectedNodeId
               }
-              selectedFamilyId={
-                selectedFamilyId
+              activeFamilyId={
+                activeFamilyId
               }
               onNodeClick={
                 handleNodeClick
