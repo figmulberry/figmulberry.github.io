@@ -52,61 +52,67 @@ const queryClient =
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route
-          path="/"
-          component={Home}
-        />
+    <>
+      <ScrollToTop />
 
-        <Route
-          path="/about"
-          component={About}
-        />
+      <Layout>
+        <Switch>
+          <Route
+            path="/"
+            component={Home}
+          />
 
-        <Route
-          path="/portfolio"
-          component={Portfolio}
-        />
+          <Route
+            path="/about"
+            component={About}
+          />
 
-        <Route
-          path="/articles/:slug"
-          component={ArticlePage}
-        />
+          <Route
+            path="/portfolio"
+            component={Portfolio}
+          />
 
-        <Route
-          path="/articles"
-          component={Articles}
-        />
+          <Route
+            path="/articles/:slug"
+            component={ArticlePage}
+          />
 
-        <Route
-          path="/preview/articles/:slug"
-          component={ArticlePreview}
-        />
+          <Route
+            path="/articles"
+            component={Articles}
+          />
 
-        <Route
-          path="/blog"
-          component={Blog}
-        />
+          <Route
+            path="/preview/articles/:slug"
+            component={ArticlePreview}
+          />
 
-        <Route
-          path="/cv"
-          component={CV}
-        />
+          <Route
+            path="/blog"
+            component={Blog}
+          />
 
-        <Route
-          path="/media"
-          component={Media}
-        />
+          <Route
+            path="/cv"
+            component={CV}
+          />
 
-        <Route
-          path="/contact"
-          component={Contact}
-        />
+          <Route
+            path="/media"
+            component={Media}
+          />
 
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+          <Route
+            path="/contact"
+            component={Contact}
+          />
+
+          <Route
+            component={NotFound}
+          />
+        </Switch>
+      </Layout>
+    </>
   );
 }
 
@@ -115,9 +121,7 @@ function App() {
     <QueryClientProvider
       client={queryClient}
     >
-      <ThemeProvider
-        defaultTheme="dark"
-      >
+      <ThemeProvider>
         <TooltipProvider>
           <WouterRouter
             base={import.meta.env.BASE_URL.replace(
@@ -125,7 +129,6 @@ function App() {
               '',
             )}
           >
-            <ScrollToTop />
             <Router />
           </WouterRouter>
 

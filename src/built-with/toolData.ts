@@ -1,27 +1,37 @@
-import {
+﻿import {
   BarChart3,
   BrainCircuit,
   CircuitBoard,
-  Code2,
-  Database,
-  PanelsTopLeft,
 } from 'lucide-react';
 
 import {
   SiArcgis,
   SiGithub,
   SiJupyter,
+  SiPostgresql,
   SiPython,
   SiQgis,
 } from 'react-icons/si';
 
-import type { Tool } from './types';
+import {
+  BsMicrosoft,
+} from 'react-icons/bs';
 
-export const toolData: Tool[] = [
+import {
+  VscVscode,
+} from 'react-icons/vsc';
+
+import type {
+  Tool,
+} from './types';
+
+export const toolData:
+  Tool[] = [
   {
     id: 'arcgis-pro',
     name: 'ArcGIS Pro',
-    tagline: 'Enterprise GIS • Spatial Analysis • Geoprocessing',
+    tagline:
+      'Enterprise GIS • Spatial Analysis • Geoprocessing',
     category: 'GIS',
     featured: true,
     level: 'Daily',
@@ -66,7 +76,8 @@ export const toolData: Tool[] = [
   {
     id: 'qgis',
     name: 'QGIS',
-    tagline: 'Spatial Analysis • Cartography • Automation',
+    tagline:
+      'Spatial Analysis • Cartography • Automation',
     category: 'GIS',
     featured: true,
     level: 'Daily',
@@ -111,13 +122,14 @@ export const toolData: Tool[] = [
   {
     id: 'postgresql-postgis',
     name: 'PostgreSQL / PostGIS',
-    tagline: 'Spatial Database • SQL • Geospatial Infrastructure',
+    tagline:
+      'Spatial Database • SQL • Geospatial Infrastructure',
     category: 'GIS',
     featured: true,
     level: 'Frequent',
     since: 2018,
     accentColor: '#336791',
-    icon: Database,
+    icon: SiPostgresql,
     homepageSummary:
       'Spatial databases, SQL analysis, and reliable geospatial data infrastructure for production workflows.',
     summary:
@@ -156,7 +168,8 @@ export const toolData: Tool[] = [
   {
     id: 'machine-learning',
     name: 'Machine Learning',
-    tagline: 'Scikit-learn • TensorFlow • PyTorch • GeoAI',
+    tagline:
+      'Scikit-learn • TensorFlow • PyTorch • GeoAI',
     category: 'AI',
     featured: true,
     level: 'Project-based',
@@ -201,7 +214,8 @@ export const toolData: Tool[] = [
   {
     id: 'python',
     name: 'Python',
-    tagline: 'Automation • Spatial Analysis • AI Workflows',
+    tagline:
+      'Automation • Spatial Analysis • AI Workflows',
     category: 'Programming',
     featured: true,
     level: 'Daily',
@@ -246,7 +260,8 @@ export const toolData: Tool[] = [
   {
     id: 'jupyter',
     name: 'Jupyter',
-    tagline: 'Reproducible Analysis • Notebooks • Prototyping',
+    tagline:
+      'Reproducible Analysis • Notebooks • Prototyping',
     category: 'Programming',
     featured: true,
     level: 'Frequent',
@@ -291,7 +306,8 @@ export const toolData: Tool[] = [
   {
     id: 'power-bi',
     name: 'Power BI',
-    tagline: 'Analytics • Dashboards • Frontier AI Training',
+    tagline:
+      'Analytics • Dashboards • Frontier AI Training',
     category: 'Analytics',
     featured: true,
     level: 'Frequent',
@@ -336,13 +352,14 @@ export const toolData: Tool[] = [
   {
     id: 'microsoft-365',
     name: 'Microsoft 365',
-    tagline: 'Excel • Word • PowerPoint • Frontier AI Training',
+    tagline:
+      'Excel • Word • PowerPoint • Frontier AI Training',
     category: 'Analytics',
     featured: true,
     level: 'Daily',
     since: 2016,
     accentColor: '#0078D4',
-    icon: PanelsTopLeft,
+    icon: BsMicrosoft,
     homepageSummary:
       'Advanced analytics, reporting, documentation, presentations, and structured business workflows.',
     summary:
@@ -381,7 +398,8 @@ export const toolData: Tool[] = [
   {
     id: 'librepcb',
     name: 'LibrePCB',
-    tagline: 'PCB Libraries • Schematic Design • Frontier AI Training',
+    tagline:
+      'PCB Libraries • Schematic Design • Frontier AI Training',
     category: 'Electronics',
     featured: true,
     level: 'Project-based',
@@ -426,7 +444,8 @@ export const toolData: Tool[] = [
   {
     id: 'github',
     name: 'GitHub',
-    tagline: 'Version Control • Collaboration • Deployment',
+    tagline:
+      'Version Control • Collaboration • Deployment',
     category: 'Development',
     featured: true,
     level: 'Daily',
@@ -471,13 +490,14 @@ export const toolData: Tool[] = [
   {
     id: 'vs-code',
     name: 'VS Code',
-    tagline: 'Development • Documentation • Technical Workflows',
+    tagline:
+      'Development • Documentation • Technical Workflows',
     category: 'Development',
     featured: true,
     level: 'Daily',
     since: 2020,
     accentColor: '#007ACC',
-    icon: Code2,
+    icon: VscVscode,
     homepageSummary:
       'Focused development for React, TypeScript, Python, GIS, and technical documentation.',
     summary:
@@ -513,3 +533,4 @@ export const toolData: Tool[] = [
     relatedHref: '/portfolio',
   },
 ];
+

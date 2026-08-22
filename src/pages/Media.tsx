@@ -77,7 +77,7 @@ export default function Media() {
             New tutorials and content posted regularly on YouTube and community platforms
           </p>
           <a
-            href="https://youtube.com/@thekalabash"
+            href="https://www.youtube.com/@thekalabashmosaics/"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-accent text-accent-foreground rounded-md font-medium hover:bg-accent/90 transition-colors"

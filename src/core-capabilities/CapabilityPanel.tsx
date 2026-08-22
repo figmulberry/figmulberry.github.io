@@ -1,5 +1,6 @@
 import React, {
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
@@ -17,12 +18,21 @@ import {
   Link,
 } from 'wouter';
 
-import CapabilityOrb from
-  './CapabilityOrb';
+import {
+  contentRegistry,
+} from '@/content/engine/registry';
+
+import CapabilityFamilyIcon from
+  './CapabilityFamilyIcon';
 
 import {
   capabilityAccentStyles,
 } from './accentStyles';
+
+import {
+  getCapabilityArticleHref,
+  getCapabilityArticles,
+} from './capabilityContent';
 
 import type {
   CapabilityFamily,
@@ -69,8 +79,8 @@ export default function CapabilityPanel({
   onClose,
 }: CapabilityPanelProps) {
   const [
-    projectIndex,
-    setProjectIndex,
+    articleIndex,
+    setArticleIndex,
   ] = useState(0);
 
   const accent =
@@ -78,48 +88,76 @@ export default function CapabilityPanel({
       family.accent
     ];
 
-  const projects =
-    family.projects;
+  const articles =
+    useMemo(
+      () =>
+        getCapabilityArticles(
+          contentRegistry,
+          family,
+          3,
+        ),
+      [
+        family,
+      ],
+    );
 
-  const activeProject =
-    projects.length > 0
-      ? projects[
-          projectIndex %
-            projects.length
+  const activeArticle =
+    articles.length > 0
+      ? articles[
+          articleIndex %
+            articles.length
         ]
       : null;
 
-  useEffect(() => {
-    setProjectIndex(0);
-  }, [family.id]);
+  const exploreHref =
+    activeArticle
+      ? getCapabilityArticleHref(
+          activeArticle,
+        )
+      : '/articles';
 
-  function previousProject() {
+  useEffect(() => {
+    setArticleIndex(0);
+  }, [
+    family.id,
+  ]);
+
+  function previousArticle() {
     if (
-      projects.length <= 1
+      articles.length <= 1
     ) {
       return;
     }
 
-    setProjectIndex(
-      (current) =>
-        (current -
+    setArticleIndex(
+      (
+        current,
+      ) =>
+        (
+          current -
           1 +
-          projects.length) %
-        projects.length,
+          articles.length
+        ) %
+        articles.length,
     );
   }
 
-  function nextProject() {
+  function nextArticle() {
     if (
-      projects.length <= 1
+      articles.length <= 1
     ) {
       return;
     }
 
-    setProjectIndex(
-      (current) =>
-        (current + 1) %
-        projects.length,
+    setArticleIndex(
+      (
+        current,
+      ) =>
+        (
+          current +
+          1
+        ) %
+        articles.length,
     );
   }
 
@@ -137,6 +175,7 @@ export default function CapabilityPanel({
     'duration-200',
     'hover:scale-105',
     'focus-visible:ring-2',
+    'focus-visible:ring-ring',
     'focus-visible:ring-offset-2',
   ].join(' ');
 
@@ -208,15 +247,43 @@ export default function CapabilityPanel({
           ].join(' '),
         }}
       >
-        <div className="flex shrink-0 items-center gap-2">
-          <CapabilityOrb
-            accent={
-              family.accent
-            }
-            size={34}
-          />
+        <div
+          className={[
+            'flex',
+            'shrink-0',
+            'items-center',
+            'gap-2',
+          ].join(' ')}
+        >
+          <span
+            className={[
+              'grid',
+              'h-[34px]',
+              'w-[34px]',
+              'shrink-0',
+              'place-items-center',
+            ].join(' ')}
+            style={{
+              color:
+                accent.solid,
+            }}
+          >
+            <CapabilityFamilyIcon
+              familyId={
+                family.id
+              }
+              className="h-5 w-5"
+            />
+          </span>
 
-          <div className="ml-auto flex items-center gap-0.5">
+          <div
+            className={[
+              'ml-auto',
+              'flex',
+              'items-center',
+              'gap-0.5',
+            ].join(' ')}
+          >
             <button
               type="button"
               onClick={
@@ -233,7 +300,16 @@ export default function CapabilityPanel({
               />
             </button>
 
-            <span className="min-w-10 text-center text-[0.68rem] font-medium tracking-[0.12em] text-muted-foreground">
+            <span
+              className={[
+                'min-w-10',
+                'text-center',
+                'text-[0.68rem]',
+                'font-medium',
+                'tracking-[0.12em]',
+                'text-muted-foreground',
+              ].join(' ')}
+            >
               {familyIndex + 1}
               {' / '}
               {familyCount}
@@ -325,8 +401,20 @@ export default function CapabilityPanel({
           </div>
         </div>
 
-        <div className="mt-5 shrink-0">
-          <h3 className="text-[1.38rem] font-semibold leading-tight tracking-tight">
+        <div
+          className={[
+            'mt-5',
+            'shrink-0',
+          ].join(' ')}
+        >
+          <h3
+            className={[
+              'text-[1.38rem]',
+              'font-semibold',
+              'leading-tight',
+              'tracking-tight',
+            ].join(' ')}
+          >
             {family.label}
           </h3>
 
@@ -368,19 +456,36 @@ export default function CapabilityPanel({
           )}
         </div>
 
-        <p className="mt-4 shrink-0 text-[0.78rem] leading-[1.45rem] text-muted-foreground">
+        <p
+          className={[
+            'mt-4',
+            'shrink-0',
+            'text-[0.78rem]',
+            'leading-[1.45rem]',
+            'text-muted-foreground',
+          ].join(' ')}
+        >
           {family.description}
         </p>
 
         <div
-          className="my-4 h-px shrink-0"
+          className={[
+            'my-4',
+            'h-px',
+            'shrink-0',
+          ].join(' ')}
           style={{
             background:
               `linear-gradient(90deg, ${accent.solid}55, transparent)`,
           }}
         />
 
-        <div className="min-h-0 flex-1">
+        <div
+          className={[
+            'min-h-0',
+            'flex-1',
+          ].join(' ')}
+        >
           <p
             className={[
               'text-[0.64rem]',
@@ -393,22 +498,31 @@ export default function CapabilityPanel({
                 accent.solid,
             }}
           >
-            Featured Project
+            Related Article
           </p>
 
-          {activeProject ? (
-            <div className="mt-2">
-              <div className="grid grid-cols-[28px_minmax(0,1fr)_28px] items-center gap-1.5">
+          {activeArticle ? (
+            <div
+              className="mt-2"
+            >
+              <div
+                className={[
+                  'grid',
+                  'grid-cols-[28px_minmax(0,1fr)_28px]',
+                  'items-center',
+                  'gap-1.5',
+                ].join(' ')}
+              >
                 <button
                   type="button"
                   onClick={
-                    previousProject
+                    previousArticle
                   }
                   disabled={
-                    projects.length <=
+                    articles.length <=
                     1
                   }
-                  aria-label="Previous project"
+                  aria-label="Previous related article"
                   className={[
                     'grid',
                     'h-7',
@@ -418,7 +532,11 @@ export default function CapabilityPanel({
                     'bg-transparent',
                     'p-0',
                     'text-muted-foreground',
+                    'outline-none',
                     'disabled:opacity-30',
+                    'focus-visible:ring-2',
+                    'focus-visible:ring-ring',
+                    'focus-visible:ring-offset-2',
                   ].join(' ')}
                 >
                   <ChevronLeft
@@ -426,7 +544,27 @@ export default function CapabilityPanel({
                   />
                 </button>
 
-                <div className="grid min-w-0 grid-cols-[68px_minmax(0,1fr)] items-center gap-2.5">
+                <Link
+                  href={
+                    getCapabilityArticleHref(
+                      activeArticle,
+                    )
+                  }
+                  aria-label={
+                    `Read ${activeArticle.title}`
+                  }
+                  className={[
+                    'grid',
+                    'min-w-0',
+                    'grid-cols-[68px_minmax(0,1fr)]',
+                    'items-center',
+                    'gap-2.5',
+                    'outline-none',
+                    'focus-visible:ring-2',
+                    'focus-visible:ring-ring',
+                    'focus-visible:ring-offset-2',
+                  ].join(' ')}
+                >
                   <div
                     className={[
                       'h-[58px]',
@@ -443,16 +581,23 @@ export default function CapabilityPanel({
                         `0 6px 14px ${accent.lightShadow}`,
                     }}
                   >
-                    {activeProject.thumbnail ? (
+                    {activeArticle.thumbnail ? (
                       <img
                         src={
-                          activeProject.thumbnail
+                          activeArticle.thumbnail.src
                         }
-                        alt=""
-                        className="h-full w-full object-cover"
+                        alt={
+                          activeArticle.thumbnail.alt
+                        }
+                        className={[
+                          'h-full',
+                          'w-full',
+                          'object-cover',
+                        ].join(' ')}
                       />
                     ) : (
                       <div
+                        aria-hidden="true"
                         className="h-full w-full"
                         style={{
                           background:
@@ -462,31 +607,43 @@ export default function CapabilityPanel({
                     )}
                   </div>
 
-                  <div className="min-w-0">
-                    <h4 className="truncate text-xs font-semibold">
-                      {
-                        activeProject.title
-                      }
+                  <div
+                    className="min-w-0"
+                  >
+                    <h4
+                      className={[
+                        'truncate',
+                        'text-xs',
+                        'font-semibold',
+                      ].join(' ')}
+                    >
+                      {activeArticle.title}
                     </h4>
 
-                    <p className="mt-1 line-clamp-2 text-[0.68rem] leading-4 text-muted-foreground">
-                      {
-                        activeProject.description
-                      }
+                    <p
+                      className={[
+                        'mt-1',
+                        'line-clamp-2',
+                        'text-[0.68rem]',
+                        'leading-4',
+                        'text-muted-foreground',
+                      ].join(' ')}
+                    >
+                      {activeArticle.description}
                     </p>
                   </div>
-                </div>
+                </Link>
 
                 <button
                   type="button"
                   onClick={
-                    nextProject
+                    nextArticle
                   }
                   disabled={
-                    projects.length <=
+                    articles.length <=
                     1
                   }
-                  aria-label="Next project"
+                  aria-label="Next related article"
                   className={[
                     'grid',
                     'h-7',
@@ -496,7 +653,11 @@ export default function CapabilityPanel({
                     'bg-transparent',
                     'p-0',
                     'text-muted-foreground',
+                    'outline-none',
                     'disabled:opacity-30',
+                    'focus-visible:ring-2',
+                    'focus-visible:ring-ring',
+                    'focus-visible:ring-offset-2',
                   ].join(' ')}
                 >
                   <ChevronRight
@@ -506,25 +667,52 @@ export default function CapabilityPanel({
               </div>
             </div>
           ) : (
-            <div className="mt-2 flex h-[78px] items-center border border-border/50 bg-background/15 px-3.5 text-[0.7rem] leading-5 text-muted-foreground">
-              Project evidence will
-              appear here once mapped
-              to this capability.
+            <div
+              className={[
+                'mt-2',
+                'flex',
+                'h-[78px]',
+                'items-center',
+                'border',
+                'border-border/50',
+                'bg-background/15',
+                'px-3.5',
+                'text-[0.7rem]',
+                'leading-5',
+                'text-muted-foreground',
+              ].join(' ')}
+            >
+              Related published content
+              will appear here when it
+              matches this capability.
             </div>
           )}
         </div>
 
-        <div className="mt-2 flex shrink-0 justify-end">
+        <div
+          className={[
+            'mt-2',
+            'flex',
+            'shrink-0',
+            'justify-end',
+          ].join(' ')}
+        >
           <Link
-            href="/articles"
+            href={
+              exploreHref
+            }
             className={[
               'inline-flex',
               'items-center',
               'gap-1.5',
               'text-[0.82rem]',
               'font-medium',
+              'outline-none',
               'transition-opacity',
               'hover:opacity-70',
+              'focus-visible:ring-2',
+              'focus-visible:ring-ring',
+              'focus-visible:ring-offset-2',
             ].join(' ')}
             style={{
               color:

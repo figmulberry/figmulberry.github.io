@@ -1,7 +1,6 @@
-import React, {
+﻿import React, {
   useEffect,
   useRef,
-  useState,
 } from 'react';
 
 import {
@@ -66,6 +65,154 @@ const COLLISION_GAP = 10;
 
 const MAX_COLLISION_PASSES =
   80;
+
+const POSITION_TRANSITION_MS =
+  500;
+
+const REDUCED_MOTION_QUERY =
+  '(prefers-reduced-motion: reduce)';
+
+function easeInOutCubic(
+  value: number,
+): number {
+  return value < 0.5
+    ? 4 *
+        value *
+        value *
+        value
+    : 1 -
+        Math.pow(
+          -2 * value + 2,
+          3,
+        ) /
+          2;
+}
+
+function haveSameGeometry(
+  first: DisplayNode[],
+  second: DisplayNode[],
+): boolean {
+  if (
+    first.length !==
+    second.length
+  ) {
+    return false;
+  }
+
+  const firstById =
+    new Map(
+      first.map(
+        (node) => [
+          node.id,
+          node,
+        ],
+      ),
+    );
+
+  return second.every(
+    (node) => {
+      const previous =
+        firstById.get(
+          node.id,
+        );
+
+      if (!previous) {
+        return false;
+      }
+
+      return (
+        Math.abs(
+          previous.displayX -
+            node.displayX,
+        ) <
+          0.01 &&
+        Math.abs(
+          previous.displayY -
+            node.displayY,
+        ) <
+          0.01 &&
+        Math.abs(
+          previous.renderScale -
+            node.renderScale,
+        ) <
+          0.001
+      );
+    },
+  );
+}
+
+function interpolateDisplayNodes(
+  fromNodes: DisplayNode[],
+  toNodes: DisplayNode[],
+  progress: number,
+): DisplayNode[] {
+  const fromById =
+    new Map(
+      fromNodes.map(
+        (node) => [
+          node.id,
+          node,
+        ],
+      ),
+    );
+
+  return toNodes.map(
+    (target) => {
+      const start =
+        fromById.get(
+          target.id,
+        );
+
+      if (!start) {
+        return target;
+      }
+
+      return {
+        ...target,
+
+        displayX:
+          start.displayX +
+          (
+            target.displayX -
+            start.displayX
+          ) *
+            progress,
+
+        displayY:
+          start.displayY +
+          (
+            target.displayY -
+            start.displayY
+          ) *
+            progress,
+
+        renderScale:
+          start.renderScale +
+          (
+            target.renderScale -
+            start.renderScale
+          ) *
+            progress,
+
+        collisionWidth:
+          start.collisionWidth +
+          (
+            target.collisionWidth -
+            start.collisionWidth
+          ) *
+            progress,
+
+        collisionHeight:
+          start.collisionHeight +
+          (
+            target.collisionHeight -
+            start.collisionHeight
+          ) *
+            progress,
+      };
+    },
+  );
+}
 
 const familyAccentMap =
   new Map(
@@ -640,12 +787,15 @@ export default function CapabilityCanvas({
       DisplayNode[]
     >([]);
 
-  const [
-    hoveredNodeId,
-    setHoveredNodeId,
-  ] = useState<string | null>(
-    null,
-  );
+  const hoveredNodeIdRef =
+    useRef<string | null>(
+      null,
+    );
+
+  const redrawRef =
+    useRef<() => void>(
+      () => {},
+    );
 
   useEffect(() => {
     const canvas =
@@ -662,11 +812,17 @@ export default function CapabilityCanvas({
       return;
     }
 
-    let frameId = 0;
+    const reducedMotionMedia =
+      window.matchMedia(
+        REDUCED_MOTION_QUERY,
+      );
 
-    const render = () => {
+    let frameId = 0;
+    let resizeFrameId = 0;
+
+    function getCanvasState() {
       const rectangle =
-        container.getBoundingClientRect();
+        container!.getBoundingClientRect();
 
       const width =
         Math.max(
@@ -688,29 +844,55 @@ export default function CapabilityCanvas({
         window.devicePixelRatio ||
         1;
 
-      canvas.width =
+      const pixelWidth =
         Math.floor(
           width * ratio,
         );
 
-      canvas.height =
+      const pixelHeight =
         Math.floor(
           height * ratio,
         );
 
-      canvas.style.width =
-        `${width}px`;
+      if (
+        canvas!.width !==
+        pixelWidth
+      ) {
+        canvas!.width =
+          pixelWidth;
+      }
 
-      canvas.style.height =
-        `${height}px`;
+      if (
+        canvas!.height !==
+        pixelHeight
+      ) {
+        canvas!.height =
+          pixelHeight;
+      }
+
+      if (
+        canvas!.style.width !==
+        `${width}px`
+      ) {
+        canvas!.style.width =
+          `${width}px`;
+      }
+
+      if (
+        canvas!.style.height !==
+        `${height}px`
+      ) {
+        canvas!.style.height =
+          `${height}px`;
+      }
 
       const context =
-        canvas.getContext(
+        canvas!.getContext(
           '2d',
         );
 
       if (!context) {
-        return;
+        return null;
       }
 
       context.setTransform(
@@ -722,13 +904,19 @@ export default function CapabilityCanvas({
         0,
       );
 
-      context.clearRect(
-        0,
-        0,
+      return {
+        context,
         width,
         height,
-      );
+      };
+    }
 
+    function createTargetNodes(
+      context:
+        CanvasRenderingContext2D,
+      width: number,
+      height: number,
+    ) {
       const baseNodes =
         createCanvasLayout(
           context,
@@ -738,14 +926,29 @@ export default function CapabilityCanvas({
           },
         );
 
-      const displayNodes =
-        createDisplayNodes(
-          baseNodes,
-          selectedNodeId,
-          activeFamilyId,
-          width,
-          height,
-        );
+      return createDisplayNodes(
+        baseNodes,
+        selectedNodeId,
+        activeFamilyId,
+        width,
+        height,
+      );
+    }
+
+    function drawNodes(
+      context:
+        CanvasRenderingContext2D,
+      width: number,
+      height: number,
+      displayNodes:
+        DisplayNode[],
+    ) {
+      context.clearRect(
+        0,
+        0,
+        width,
+        height,
+      );
 
       displayNodesRef.current =
         displayNodes;
@@ -770,7 +973,7 @@ export default function CapabilityCanvas({
       ) {
         const isHovered =
           node.id ===
-          hoveredNodeId;
+          hoveredNodeIdRef.current;
 
         const isSelected =
           node.id ===
@@ -873,25 +1076,212 @@ export default function CapabilityCanvas({
 
       context.globalAlpha =
         1;
-    };
+    }
 
-    const scheduleRender =
-      () => {
-        cancelAnimationFrame(
-          frameId,
+    function renderImmediate() {
+      cancelAnimationFrame(
+        frameId,
+      );
+
+      const state =
+        getCanvasState();
+
+      if (!state) {
+        return;
+      }
+
+      const targetNodes =
+        createTargetNodes(
+          state.context,
+          state.width,
+          state.height,
         );
 
-        frameId =
-          requestAnimationFrame(
-            render,
-          );
+      drawNodes(
+        state.context,
+        state.width,
+        state.height,
+        targetNodes,
+      );
+    }
+
+    redrawRef.current =
+      () => {
+        const state =
+          getCanvasState();
+
+        if (
+          !state ||
+          displayNodesRef.current.length ===
+            0
+        ) {
+          return;
+        }
+
+        drawNodes(
+          state.context,
+          state.width,
+          state.height,
+          displayNodesRef.current,
+        );
       };
 
-    scheduleRender();
+    function animateToTarget() {
+      cancelAnimationFrame(
+        frameId,
+      );
+
+      const state =
+        getCanvasState();
+
+      if (!state) {
+        return;
+      }
+
+      const targetNodes =
+        createTargetNodes(
+          state.context,
+          state.width,
+          state.height,
+        );
+
+      const startNodes =
+        displayNodesRef.current;
+
+      if (
+        reducedMotionMedia.matches ||
+        startNodes.length ===
+          0 ||
+        !haveSameGeometry(
+          startNodes,
+          targetNodes,
+        ) &&
+          startNodes.length !==
+            targetNodes.length
+      ) {
+        drawNodes(
+          state.context,
+          state.width,
+          state.height,
+          targetNodes,
+        );
+
+        return;
+      }
+
+      if (
+        haveSameGeometry(
+          startNodes,
+          targetNodes,
+        )
+      ) {
+        drawNodes(
+          state.context,
+          state.width,
+          state.height,
+          targetNodes,
+        );
+
+        return;
+      }
+
+      const startTime =
+        performance.now();
+
+      const step =
+        (
+          currentTime:
+            number,
+        ) => {
+          const elapsed =
+            currentTime -
+            startTime;
+
+          const rawProgress =
+            Math.min(
+              elapsed /
+                POSITION_TRANSITION_MS,
+              1,
+            );
+
+          const easedProgress =
+            easeInOutCubic(
+              rawProgress,
+            );
+
+          const interpolatedNodes =
+            interpolateDisplayNodes(
+              startNodes,
+              targetNodes,
+              easedProgress,
+            );
+
+          const currentState =
+            getCanvasState();
+
+          if (!currentState) {
+            return;
+          }
+
+          drawNodes(
+            currentState.context,
+            currentState.width,
+            currentState.height,
+            interpolatedNodes,
+          );
+
+          if (
+            rawProgress <
+            1
+          ) {
+            frameId =
+              requestAnimationFrame(
+                step,
+              );
+
+            return;
+          }
+
+          drawNodes(
+            currentState.context,
+            currentState.width,
+            currentState.height,
+            targetNodes,
+          );
+        };
+
+      frameId =
+        requestAnimationFrame(
+          step,
+        );
+    }
+
+    function scheduleResizeRender() {
+      cancelAnimationFrame(
+        resizeFrameId,
+      );
+
+      resizeFrameId =
+        requestAnimationFrame(
+          renderImmediate,
+        );
+    }
+
+    function handleReducedMotionChange() {
+      if (
+        reducedMotionMedia.matches
+      ) {
+        renderImmediate();
+      } else {
+        animateToTarget();
+      }
+    }
+
+    animateToTarget();
 
     const resizeObserver =
       new ResizeObserver(
-        scheduleRender,
+        scheduleResizeRender,
       );
 
     resizeObserver.observe(
@@ -900,7 +1290,7 @@ export default function CapabilityCanvas({
 
     const themeObserver =
       new MutationObserver(
-        scheduleRender,
+        renderImmediate,
       );
 
     themeObserver.observe(
@@ -913,17 +1303,35 @@ export default function CapabilityCanvas({
       },
     );
 
+    reducedMotionMedia
+      .addEventListener(
+        'change',
+        handleReducedMotionChange,
+      );
+
     return () => {
       cancelAnimationFrame(
         frameId,
       );
 
+      cancelAnimationFrame(
+        resizeFrameId,
+      );
+
       resizeObserver.disconnect();
 
       themeObserver.disconnect();
+
+      reducedMotionMedia
+        .removeEventListener(
+          'change',
+          handleReducedMotionChange,
+        );
+
+      redrawRef.current =
+        () => {};
     };
   }, [
-    hoveredNodeId,
     selectedNodeId,
     activeFamilyId,
   ]);
@@ -982,9 +1390,15 @@ export default function CapabilityCanvas({
         hovered?.familyId ??
         null;
 
-      setHoveredNodeId(
-        nextNodeId,
-      );
+      if (
+        hoveredNodeIdRef.current !==
+        nextNodeId
+      ) {
+        hoveredNodeIdRef.current =
+          nextNodeId;
+
+        redrawRef.current();
+      }
 
       onNodeHover(
         nextNodeId,
@@ -998,9 +1412,15 @@ export default function CapabilityCanvas({
     }
 
     function handlePointerLeave() {
-      setHoveredNodeId(
-        null,
-      );
+      if (
+        hoveredNodeIdRef.current !==
+        null
+      ) {
+        hoveredNodeIdRef.current =
+          null;
+
+        redrawRef.current();
+      }
 
       onNodeHover(
         null,
@@ -1068,8 +1488,11 @@ export default function CapabilityCanvas({
   return (
     <canvas
       ref={canvasRef}
+      role="img"
       className="block h-full w-full touch-pan-y"
-      aria-label="Interactive Core Capabilities word cloud"
+      aria-label="Visual Core Capabilities word cloud. Use the capability family selectors above to explore by keyboard."
     />
   );
 }
+
+

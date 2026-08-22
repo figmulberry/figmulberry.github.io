@@ -1,112 +1,366 @@
-import React, { useState } from 'react';
-import { Link } from 'wouter';
-import { Moon, Sun, Menu, Github, Linkedin } from 'lucide-react';
-import { Logo } from '@/components/ui/Logo';
-import { SearchTrigger, SearchDialog, useSearchShortcut } from '@/components/ui/SearchDialog';
-import { useTheme } from '@/components/ui/ThemeProvider';
-import { MobileMenu } from './MobileMenu';
+import React, {
+  useState,
+} from 'react';
+
+import {
+  Menu,
+  Moon,
+  Sun,
+} from 'lucide-react';
+
+import {
+  FaLinkedinIn,
+} from 'react-icons/fa';
+
+import {
+  SiGithub,
+} from 'react-icons/si';
+
+import {
+  Link,
+} from 'wouter';
+
+import {
+  MobileMenu,
+} from './MobileMenu';
+
+import {
+  Logo,
+} from '@/components/ui/Logo';
+
+import {
+  SearchDialog,
+  SearchTrigger,
+  useSearchShortcut,
+} from '@/components/ui/SearchDialog';
+
+import {
+  useTheme,
+} from '@/components/ui/ThemeProvider';
 
 const navLinks = [
-  { label: 'Home', href: '/' },
-  { label: 'About', href: '/about' },
-  { label: 'Portfolio', href: '/portfolio' },
-  { label: 'Articles', href: '/articles' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'CV', href: '/cv' },
-  { label: 'Media', href: '/media' },
-  { label: 'Contact', href: '/contact' },
+  {
+    label: 'Home',
+    href: '/',
+  },
+  {
+    label: 'About',
+    href: '/about',
+  },
+  {
+    label: 'Portfolio',
+    href: '/portfolio',
+  },
+  {
+    label: 'Articles',
+    href: '/articles',
+  },
+  {
+    label: 'Blog',
+    href: '/blog',
+  },
+  {
+    label: 'CV',
+    href: '/cv',
+  },
+  {
+    label: 'Media',
+    href: '/media',
+  },
+  {
+    label: 'Contact',
+    href: '/contact',
+  },
 ];
 
 export function Header() {
-  const { theme, toggleTheme } = useTheme();
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const {
+    theme,
+    toggleTheme,
+  } = useTheme();
 
-  useSearchShortcut(() => setSearchOpen(true));
+  const [
+    searchOpen,
+    setSearchOpen,
+  ] = useState(false);
+
+  const [
+    mobileMenuOpen,
+    setMobileMenuOpen,
+  ] = useState(false);
+
+  useSearchShortcut(
+    () => setSearchOpen(true),
+  );
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-14 items-center justify-between">
-            {/* Logo */}
+      <header
+        className={[
+          'sticky',
+          'top-0',
+          'z-50',
+          'w-full',
+          'border-b',
+          'border-border',
+          'bg-background',
+          'text-foreground',
+          'shadow-[0_1px_0_rgba(0,0,0,0.02)]',
+          'transition-colors',
+          'duration-200',
+          'dark:shadow-[0_1px_0_rgba(255,255,255,0.02)]',
+        ].join(' ')}
+      >
+        <div
+          className={[
+            'container',
+            'mx-auto',
+            'max-w-7xl',
+            'px-4',
+            'sm:px-6',
+            'lg:px-8',
+          ].join(' ')}
+        >
+          <div
+            className={[
+              'flex',
+              'h-14',
+              'items-center',
+              'justify-between',
+            ].join(' ')}
+          >
             <div className="flex items-center">
               <Logo />
             </div>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-muted"
-                >
-                  {link.label}
-                </Link>
-              ))}
+            <nav
+              className={[
+                'hidden',
+                'items-center',
+                'gap-1',
+                'lg:flex',
+              ].join(' ')}
+              aria-label="Primary navigation"
+            >
+              {navLinks.map(
+                (link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={[
+                      'rounded-md',
+                      'px-3',
+                      'py-2',
+                      'text-sm',
+                      'font-medium',
+                      'text-muted-foreground',
+                      'transition-colors',
+                      'duration-150',
+                      'hover:bg-muted/70',
+                      'hover:text-foreground',
+                      'focus-visible:outline-none',
+                      'focus-visible:ring-2',
+                      'focus-visible:ring-ring',
+                      'focus-visible:ring-offset-2',
+                      'focus-visible:ring-offset-background',
+                    ].join(' ')}
+                  >
+                    {link.label}
+                  </Link>
+                ),
+              )}
             </nav>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center gap-2">
-              {/* Search */}
+            <div
+              className={[
+                'flex',
+                'items-center',
+                'gap-2',
+              ].join(' ')}
+            >
               <div className="hidden sm:block">
-                <SearchTrigger onClick={() => setSearchOpen(true)} />
+                <SearchTrigger
+                  onClick={
+                    () =>
+                      setSearchOpen(
+                        true,
+                      )
+                  }
+                />
               </div>
 
-              {/* Theme Toggle */}
               <button
+                type="button"
                 onClick={toggleTheme}
-                className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-muted transition-colors"
-                aria-label="Toggle theme"
+                className={[
+                  'flex',
+                  'h-9',
+                  'w-9',
+                  'items-center',
+                  'justify-center',
+                  'rounded-md',
+                  'transition-colors',
+                  'duration-150',
+                  'hover:bg-muted/70',
+                  'focus-visible:outline-none',
+                  'focus-visible:ring-2',
+                  'focus-visible:ring-ring',
+                  'focus-visible:ring-offset-2',
+                  'focus-visible:ring-offset-background',
+                ].join(' ')}
+                aria-label={
+                  theme === 'dark'
+                    ? 'Switch to light mode'
+                    : 'Switch to dark mode'
+                }
               >
                 {theme === 'dark' ? (
-                  <Sun className="h-4 w-4 text-muted-foreground" />
+                  <Sun
+                    className="h-4 w-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <Moon className="h-4 w-4 text-muted-foreground" />
+                  <Moon
+                    className="h-4 w-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                 )}
               </button>
 
-              {/* Social Links - Desktop */}
-              <div className="hidden md:flex items-center gap-2 ml-2 pl-2 border-l border-border">
+              <div
+                className={[
+                  'ml-2',
+                  'hidden',
+                  'items-center',
+                  'gap-1',
+                  'border-l',
+                  'border-border',
+                  'pl-2',
+                  'md:flex',
+                ].join(' ')}
+              >
                 <a
-                  href="https://github.com/mosesthiongo"
+                  href="https://github.com/figmulberry"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-muted transition-colors"
+                  className={[
+                    'group',
+                    'flex',
+                    'h-9',
+                    'w-9',
+                    'items-center',
+                    'justify-center',
+                    'rounded-md',
+                    'transition-colors',
+                    'duration-150',
+                    'hover:bg-muted/70',
+                    'focus-visible:outline-none',
+                    'focus-visible:ring-2',
+                    'focus-visible:ring-ring',
+                    'focus-visible:ring-offset-2',
+                    'focus-visible:ring-offset-background',
+                  ].join(' ')}
                   aria-label="GitHub"
+                  title="GitHub"
                 >
-                  <Github className="h-4 w-4 text-muted-foreground" />
+                  <SiGithub
+                    className={[
+                      'h-4',
+                      'w-4',
+                      'text-muted-foreground',
+                      'transition-colors',
+                      'group-hover:text-foreground',
+                    ].join(' ')}
+                    aria-hidden="true"
+                  />
                 </a>
+
                 <a
-                  href="https://linkedin.com/in/mosesthiongo"
+                  href="https://www.linkedin.com/in/mkthiongo/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center w-9 h-9 rounded-md hover:bg-muted transition-colors"
+                  className={[
+                    'group',
+                    'flex',
+                    'h-9',
+                    'w-9',
+                    'items-center',
+                    'justify-center',
+                    'rounded-md',
+                    'transition-colors',
+                    'duration-150',
+                    'hover:bg-muted/70',
+                    'focus-visible:outline-none',
+                    'focus-visible:ring-2',
+                    'focus-visible:ring-ring',
+                    'focus-visible:ring-offset-2',
+                    'focus-visible:ring-offset-background',
+                  ].join(' ')}
                   aria-label="LinkedIn"
+                  title="LinkedIn"
                 >
-                  <Linkedin className="h-4 w-4 text-muted-foreground" />
+                  <FaLinkedinIn
+                    className={[
+                      'h-4',
+                      'w-4',
+                      'text-muted-foreground',
+                      'transition-colors',
+                      'group-hover:text-[#0A66C2]',
+                    ].join(' ')}
+                    aria-hidden="true"
+                  />
                 </a>
               </div>
 
-              {/* Mobile Menu Toggle */}
               <button
-                onClick={() => setMobileMenuOpen(true)}
-                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-md hover:bg-muted transition-colors"
+                type="button"
+                onClick={
+                  () =>
+                    setMobileMenuOpen(
+                      true,
+                    )
+                }
+                className={[
+                  'flex',
+                  'h-9',
+                  'w-9',
+                  'items-center',
+                  'justify-center',
+                  'rounded-md',
+                  'transition-colors',
+                  'duration-150',
+                  'hover:bg-muted/70',
+                  'focus-visible:outline-none',
+                  'focus-visible:ring-2',
+                  'focus-visible:ring-ring',
+                  'focus-visible:ring-offset-2',
+                  'focus-visible:ring-offset-background',
+                  'lg:hidden',
+                ].join(' ')}
                 aria-label="Open menu"
               >
-                <Menu className="h-5 w-5 text-muted-foreground" />
+                <Menu
+                  className="h-5 w-5 text-muted-foreground"
+                  aria-hidden="true"
+                />
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Search Dialog */}
-      <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+      <SearchDialog
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+      />
 
-      {/* Mobile Menu */}
-      <MobileMenu open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} navLinks={navLinks} />
+      <MobileMenu
+        open={mobileMenuOpen}
+        onOpenChange={
+          setMobileMenuOpen
+        }
+        navLinks={navLinks}
+      />
     </>
   );
 }

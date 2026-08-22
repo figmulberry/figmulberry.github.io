@@ -25,7 +25,10 @@ function createSeed(
     index < value.length;
     index += 1
   ) {
-    hash ^= value.charCodeAt(index);
+    hash ^=
+      value.charCodeAt(
+        index,
+      );
 
     hash = Math.imul(
       hash,
@@ -39,22 +42,28 @@ function createSeed(
 function createRandom(
   initialSeed: number,
 ): () => number {
-  let seed = initialSeed;
+  let seed =
+    initialSeed;
 
   return () => {
-    seed += 0x6d2b79f5;
+    seed +=
+      0x6d2b79f5;
 
-    let value = seed;
+    let value =
+      seed;
 
-    value = Math.imul(
-      value ^ (value >>> 15),
-      value | 1,
-    );
+    value =
+      Math.imul(
+        value ^
+          (value >>> 15),
+        value | 1,
+      );
 
     value ^=
       value +
       Math.imul(
-        value ^ (value >>> 7),
+        value ^
+          (value >>> 7),
         value | 61,
       );
 
@@ -68,7 +77,8 @@ function createRandom(
 }
 
 function shuffleArticles(
-  articles: readonly ArticleContent[],
+  articles:
+    readonly ArticleContent[],
   seed: number,
 ): ArticleContent[] {
   const shuffled = [
@@ -76,7 +86,9 @@ function shuffleArticles(
   ];
 
   const random =
-    createRandom(seed);
+    createRandom(
+      seed,
+    );
 
   for (
     let index =
@@ -86,14 +98,19 @@ function shuffleArticles(
   ) {
     const targetIndex =
       Math.floor(
-        random() * (index + 1),
+        random() *
+          (index + 1),
       );
 
     [
       shuffled[index],
-      shuffled[targetIndex],
+      shuffled[
+        targetIndex
+      ],
     ] = [
-      shuffled[targetIndex],
+      shuffled[
+        targetIndex
+      ],
       shuffled[index],
     ];
   }
@@ -102,7 +119,8 @@ function shuffleArticles(
 }
 
 function getSeriesKey(
-  article: ArticleContent,
+  article:
+    ArticleContent,
 ): string {
   return (
     article.seriesId ??
@@ -110,82 +128,229 @@ function getSeriesKey(
   );
 }
 
-function chooseDiverseArticles(
-  shuffled:
+function getDiversityScore(
+  article:
+    ArticleContent,
+  selected:
+    readonly ArticleContent[],
+): number {
+  const selectedCategories =
+    new Set(
+      selected.map(
+        (
+          selectedArticle,
+        ) =>
+          selectedArticle.category,
+      ),
+    );
+
+  const selectedSeries =
+    new Set(
+      selected.map(
+        (
+          selectedArticle,
+        ) =>
+          getSeriesKey(
+            selectedArticle,
+          ),
+      ),
+    );
+
+  let score = 0;
+
+  if (
+    !selectedCategories.has(
+      article.category,
+    )
+  ) {
+    score += 2;
+  }
+
+  if (
+    !selectedSeries.has(
+      getSeriesKey(
+        article,
+      ),
+    )
+  ) {
+    score += 3;
+  }
+
+  return score;
+}
+
+function chooseBestCandidate(
+  candidates:
+    readonly ArticleContent[],
+  selected:
+    readonly ArticleContent[],
+): ArticleContent | null {
+  if (
+    candidates.length === 0
+  ) {
+    return null;
+  }
+
+  let bestCandidate =
+    candidates[0];
+
+  let bestScore =
+    getDiversityScore(
+      bestCandidate,
+      selected,
+    );
+
+  for (
+    let index = 1;
+    index <
+    candidates.length;
+    index += 1
+  ) {
+    const candidate =
+      candidates[index];
+
+    const score =
+      getDiversityScore(
+        candidate,
+        selected,
+      );
+
+    if (
+      score >
+      bestScore
+    ) {
+      bestCandidate =
+        candidate;
+
+      bestScore =
+        score;
+    }
+  }
+
+  return bestCandidate;
+}
+
+function removeArticle(
+  articles:
+    ArticleContent[],
+  article:
+    ArticleContent,
+): void {
+  const index =
+    articles.findIndex(
+      (
+        candidate,
+      ) =>
+        candidate.id ===
+        article.id,
+    );
+
+  if (
+    index >= 0
+  ) {
+    articles.splice(
+      index,
+      1,
+    );
+  }
+}
+
+function chooseDailyArticles(
+  featuredPool:
+    readonly ArticleContent[],
+  standardPool:
     readonly ArticleContent[],
   limit: number,
 ): ArticleContent[] {
+  const featured = [
+    ...featuredPool,
+  ];
+
+  const standard = [
+    ...standardPool,
+  ];
+
   const selected:
     ArticleContent[] = [];
 
-  const remaining = [
-    ...shuffled,
-  ];
-
   while (
-    selected.length < limit &&
-    remaining.length > 0
+    selected.length <
+      limit &&
+    (
+      featured.length >
+        0 ||
+      standard.length >
+        0
+    )
   ) {
-    const selectedCategories =
-      new Set(
-        selected.map(
-          (article) =>
-            article.category,
-        ),
+    const featuredCandidate =
+      chooseBestCandidate(
+        featured,
+        selected,
       );
 
-    const selectedSeries =
-      new Set(
-        selected.map(
-          (article) =>
-            getSeriesKey(article),
-        ),
+    const standardCandidate =
+      chooseBestCandidate(
+        standard,
+        selected,
       );
 
-    let chosenIndex =
-      remaining.findIndex(
-        (article) =>
-          !selectedCategories.has(
-            article.category,
-          ) &&
-          !selectedSeries.has(
-            getSeriesKey(article),
-          ),
-      );
+    /*
+     * Editorially featured articles receive
+     * priority when they provide equally good
+     * diversity.
+     *
+     * A standard article may win when it adds
+     * meaningfully better category or series
+     * diversity to the homepage selection.
+     */
+    let chosen:
+      ArticleContent |
+      null = null;
 
-    if (chosenIndex < 0) {
-      chosenIndex =
-        remaining.findIndex(
-          (article) =>
-            !selectedCategories.has(
-              article.category,
-            ),
+    if (
+      featuredCandidate &&
+      standardCandidate
+    ) {
+      const featuredScore =
+        getDiversityScore(
+          featuredCandidate,
+          selected,
         );
-    }
 
-    if (chosenIndex < 0) {
-      chosenIndex =
-        remaining.findIndex(
-          (article) =>
-            !selectedSeries.has(
-              getSeriesKey(article),
-            ),
+      const standardScore =
+        getDiversityScore(
+          standardCandidate,
+          selected,
         );
+
+      chosen =
+        standardScore >
+        featuredScore
+          ? standardCandidate
+          : featuredCandidate;
+    } else {
+      chosen =
+        featuredCandidate ??
+        standardCandidate;
     }
 
-    if (chosenIndex < 0) {
-      chosenIndex = 0;
+    if (!chosen) {
+      break;
     }
-
-    const [
-      chosenArticle,
-    ] = remaining.splice(
-      chosenIndex,
-      1,
-    );
 
     selected.push(
-      chosenArticle,
+      chosen,
+    );
+
+    removeArticle(
+      featured,
+      chosen,
+    );
+
+    removeArticle(
+      standard,
+      chosen,
     );
   }
 
@@ -199,7 +364,9 @@ export function getDailyFeaturedArticles(
   now = new Date(),
 ): ArticleContent[] {
   if (
-    !Number.isInteger(limit) ||
+    !Number.isInteger(
+      limit,
+    ) ||
     limit < 0
   ) {
     throw new Error(
@@ -207,7 +374,9 @@ export function getDailyFeaturedArticles(
     );
   }
 
-  if (limit === 0) {
+  if (
+    limit === 0
+  ) {
     return [];
   }
 
@@ -218,26 +387,59 @@ export function getDailyFeaturedArticles(
       now,
     );
 
-  if (articles.length <= limit) {
+  if (
+    articles.length <=
+    limit
+  ) {
     return articles;
   }
 
   const dateKey =
-    createDateKey(now);
+    createDateKey(
+      now,
+    );
 
-  const seed =
+  const featuredArticles =
+    articles.filter(
+      (
+        article,
+      ) =>
+        article.featured,
+    );
+
+  const standardArticles =
+    articles.filter(
+      (
+        article,
+      ) =>
+        !article.featured,
+    );
+
+  const featuredSeed =
     createSeed(
-      `home-featured-articles:${dateKey}`,
+      `home-featured-articles:featured:${dateKey}`,
     );
 
-  const shuffled =
+  const standardSeed =
+    createSeed(
+      `home-featured-articles:standard:${dateKey}`,
+    );
+
+  const shuffledFeatured =
     shuffleArticles(
-      articles,
-      seed,
+      featuredArticles,
+      featuredSeed,
     );
 
-  return chooseDiverseArticles(
-    shuffled,
+  const shuffledStandard =
+    shuffleArticles(
+      standardArticles,
+      standardSeed,
+    );
+
+  return chooseDailyArticles(
+    shuffledFeatured,
+    shuffledStandard,
     limit,
   );
 }
