@@ -23,3 +23,7 @@ thumbnail-pattern-comparison.txt
 thumbnail-replacement-inspection.txt
 
 desktop.ini
+
+# Local CV design references and render previews
+/references/cv/
+/cv-render/
