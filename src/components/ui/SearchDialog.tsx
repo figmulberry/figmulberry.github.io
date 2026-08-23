@@ -1,6 +1,7 @@
 import React, {
   useEffect,
   useMemo,
+  useState,
 } from 'react';
 
 import {
@@ -8,6 +9,7 @@ import {
   FileText,
   FolderKanban,
   Layers3,
+  PlaySquare,
   Search,
   Wrench,
 } from 'lucide-react';
@@ -77,7 +79,7 @@ const pageItems = [
     title: 'Media',
     path: '/media',
     keywords:
-      'media videos tutorials youtube',
+      'media video videos poetry presentations tutorials youtube',
   },
   {
     title: 'Contact',
@@ -98,6 +100,15 @@ type SearchTriggerProps = {
   onClick: () => void;
 };
 
+function normalizeSearchText(
+  value: string,
+): string {
+  return value
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase();
+}
+
 function getContentPath(
   record: ContentRecord,
 ): string {
@@ -110,6 +121,9 @@ function getContentPath(
 
     case 'project':
       return '/portfolio';
+
+    case 'media':
+      return '/media';
 
     case 'tool':
       return '/portfolio';
@@ -135,6 +149,9 @@ function getContentLabel(
     case 'project':
       return 'Project';
 
+    case 'media':
+      return 'Media';
+
     case 'tool':
       return 'Tool';
 
@@ -159,6 +176,9 @@ function getContentIcon(
     case 'project':
       return FolderKanban;
 
+    case 'media':
+      return PlaySquare;
+
     case 'tool':
       return Wrench;
 
@@ -179,6 +199,7 @@ function getSearchValue(
     record.contentType,
     ...record.tags,
     ...record.topicIds,
+    ...record.searchKeywords,
   ]
     .filter(Boolean)
     .join(' ');
@@ -193,6 +214,11 @@ export function SearchDialog({
     setLocation,
   ] = useLocation();
 
+  const [
+    searchQuery,
+    setSearchQuery,
+  ] = useState('');
+
   const discoverableContent =
     useMemo(
       () =>
@@ -201,6 +227,56 @@ export function SearchDialog({
         ),
       [],
     );
+
+  const normalizedQuery =
+    useMemo(
+      () =>
+        normalizeSearchText(
+          searchQuery,
+        ),
+      [
+        searchQuery,
+      ],
+    );
+
+  const exactTitleMatches =
+    useMemo(
+      () => {
+        if (!normalizedQuery) {
+          return [];
+        }
+
+        return discoverableContent.filter(
+          (record) =>
+            normalizeSearchText(
+              record.title,
+            ) === normalizedQuery,
+        );
+      },
+      [
+        discoverableContent,
+        normalizedQuery,
+      ],
+    );
+
+  const hasExactTitleMatch =
+    exactTitleMatches.length > 0;
+
+  const visibleContent =
+    hasExactTitleMatch
+      ? exactTitleMatches
+      : discoverableContent;
+
+  useEffect(
+    () => {
+      if (!open) {
+        setSearchQuery('');
+      }
+    },
+    [
+      open,
+    ],
+  );
 
   const handleSelect = (
     path: string,
@@ -215,6 +291,10 @@ export function SearchDialog({
       onOpenChange={onOpenChange}
     >
       <CommandInput
+        value={searchQuery}
+        onValueChange={
+          setSearchQuery
+        }
         placeholder="Search the site..."
         aria-label="Search the site"
       />
@@ -238,56 +318,58 @@ export function SearchDialog({
           </div>
         </CommandEmpty>
 
-        <CommandGroup
-          heading="Pages"
-          className="py-1"
-        >
-          {pageItems.map(
-            (item) => (
-              <CommandItem
-                key={item.path}
-                value={[
-                  item.title,
-                  item.keywords,
-                ].join(' ')}
-                onSelect={
-                  () =>
-                    handleSelect(
-                      item.path,
-                    )
-                }
-                className={[
-                  'my-0.5',
-                  'rounded-md',
-                  'border-l-2',
-                  'border-l-transparent',
-                  'px-3',
-                  'py-2.5',
-                  'data-[selected=true]:border-l-accent',
-                  'data-[selected=true]:bg-accent/10',
-                  'data-[selected=true]:text-foreground',
-                ].join(' ')}
-              >
-                <Search
-                  className="h-4 w-4 text-muted-foreground"
-                  aria-hidden="true"
-                />
+        {!hasExactTitleMatch && (
+          <CommandGroup
+            heading="Pages"
+            className="py-1"
+          >
+            {pageItems.map(
+              (item) => (
+                <CommandItem
+                  key={item.path}
+                  value={[
+                    item.title,
+                    item.keywords,
+                  ].join(' ')}
+                  onSelect={
+                    () =>
+                      handleSelect(
+                        item.path,
+                      )
+                  }
+                  className={[
+                    'my-0.5',
+                    'rounded-md',
+                    'border-l-2',
+                    'border-l-transparent',
+                    'px-3',
+                    'py-2.5',
+                    'data-[selected=true]:border-l-accent',
+                    'data-[selected=true]:bg-accent/10',
+                    'data-[selected=true]:text-foreground',
+                  ].join(' ')}
+                >
+                  <Search
+                    className="h-4 w-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
 
-                <span className="font-medium">
-                  {item.title}
-                </span>
-              </CommandItem>
-            ),
-          )}
-        </CommandGroup>
+                  <span className="font-medium">
+                    {item.title}
+                  </span>
+                </CommandItem>
+              ),
+            )}
+          </CommandGroup>
+        )}
 
-        {discoverableContent.length >
+        {visibleContent.length >
           0 && (
           <CommandGroup
             heading="Published content"
             className="py-1"
           >
-            {discoverableContent.map(
+            {visibleContent.map(
               (record) => {
                 const Icon =
                   getContentIcon(

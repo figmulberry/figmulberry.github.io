@@ -12,8 +12,21 @@ import { recreatingHistoricScaleBarsArticle } from
 import { foodLossGovernanceArticle } from
   '@/content/articles/the-spatial-governance-gap-of-food-loss-and-waste/article';
 
+import { aGrainOfLoveMedia } from
+  '@/content/media/a-grain-of-love/media';
+
+import { nacisPresentationMedia } from
+  '@/content/media/nacis-presentation/media';
+
+import { featureOutlineMasksMedia } from
+  '@/content/media/feature-outline-masks/media';
+
 import { historicTopographicMapRecreationSeries } from
   '@/content/series/historic-topographic-map-recreation/series';
+
+import { roleOfGisMedia } from
+  '@/content/media/role-of-gis/media';
+
 import { arcgisProTool } from
   '@/content/tools/arcgis-pro/tool';
 
@@ -25,11 +38,15 @@ import type {
 
 const sourceRecords: readonly ContentRecord[] = [
   arcgisProTool,
+  aGrainOfLoveMedia,
+  nacisPresentationMedia,
+  featureOutlineMasksMedia,
   historicTopographicMapRecreationSeries,
   topoGridsPart1Article,
   topoGridsPart2Article,
   recreatingHistoricScaleBarsArticle,
   foodLossGovernanceArticle,
+  roleOfGisMedia,
 ];
 
 function validateRegistry(
@@ -65,33 +82,50 @@ function validateUniqueIdentities(
     const canonicalRoute =
       `${record.contentType}:${record.slug}`;
 
-    if (canonicalRoutes.has(canonicalRoute)) {
+    if (
+      canonicalRoutes.has(
+        canonicalRoute,
+      )
+    ) {
       throw new Error(
         `Duplicate canonical slug: ${canonicalRoute}`,
       );
     }
 
-    canonicalRoutes.add(canonicalRoute);
+    canonicalRoutes.add(
+      canonicalRoute,
+    );
 
-    for (const alias of record.aliases) {
+    for (
+      const alias of record.aliases
+    ) {
       const aliasRoute =
         `${record.contentType}:${alias}`;
 
       if (
         aliases.has(aliasRoute) ||
-        canonicalRoutes.has(aliasRoute)
+        canonicalRoutes.has(
+          aliasRoute,
+        )
       ) {
         throw new Error(
           `Duplicate or conflicting alias: ${aliasRoute}`,
         );
       }
 
-      aliases.add(aliasRoute);
+      aliases.add(
+        aliasRoute,
+      );
     }
   }
 
-  for (const canonicalRoute of canonicalRoutes) {
-    if (aliases.has(canonicalRoute)) {
+  for (
+    const canonicalRoute of
+    canonicalRoutes
+  ) {
+    if (
+      aliases.has(canonicalRoute)
+    ) {
       throw new Error(
         `Alias conflicts with canonical route: ${canonicalRoute}`,
       );
@@ -110,18 +144,26 @@ function validateRelationships(
   );
 
   for (const record of records) {
-    const seenEdges = new Set<string>();
+    const seenEdges =
+      new Set<string>();
 
-    for (const relationship of record.relationships) {
-      if (relationship.targetId === record.id) {
+    for (
+      const relationship of
+      record.relationships
+    ) {
+      if (
+        relationship.targetId ===
+        record.id
+      ) {
         throw new Error(
           `${record.id} cannot relate to itself.`,
         );
       }
 
-      const target = recordsById.get(
-        relationship.targetId,
-      );
+      const target =
+        recordsById.get(
+          relationship.targetId,
+        );
 
       if (!target) {
         throw new Error(
@@ -132,7 +174,9 @@ function validateRelationships(
       const edgeKey =
         `${relationship.type}:${relationship.targetId}`;
 
-      if (seenEdges.has(edgeKey)) {
+      if (
+        seenEdges.has(edgeKey)
+      ) {
         throw new Error(
           `${record.id} contains duplicate relationship: ${edgeKey}`,
         );
@@ -141,8 +185,10 @@ function validateRelationships(
       seenEdges.add(edgeKey);
 
       if (
-        record.status === 'published' &&
-        target.status === 'draft'
+        record.status ===
+          'published' &&
+        target.status ===
+          'draft'
       ) {
         throw new Error(
           `${record.id} is published but references draft content: ${target.id}`,
@@ -162,17 +208,23 @@ function validateSeries(
     ]),
   );
 
-  const seriesRecords = records.filter(
-    (
-      record,
-    ): record is SeriesContent =>
-      record.contentType === 'series',
-  );
+  const seriesRecords =
+    records.filter(
+      (
+        record,
+      ): record is SeriesContent =>
+        record.contentType ===
+        'series',
+    );
 
-  const seriesParts = new Set<string>();
+  const seriesParts =
+    new Set<string>();
 
   for (const record of records) {
-    if (record.contentType !== 'article') {
+    if (
+      record.contentType !==
+      'article'
+    ) {
       continue;
     }
 
@@ -183,7 +235,9 @@ function validateSeries(
     );
   }
 
-  for (const series of seriesRecords) {
+  for (
+    const series of seriesRecords
+  ) {
     validateSeriesMembers(
       series,
       recordsById,
@@ -200,15 +254,18 @@ function validateArticleSeries(
   seriesParts: Set<string>,
 ): void {
   if (
-    article.seriesId === undefined ||
-    article.seriesPart === undefined
+    article.seriesId ===
+      undefined ||
+    article.seriesPart ===
+      undefined
   ) {
     return;
   }
 
-  const series = recordsById.get(
-    article.seriesId,
-  );
+  const series =
+    recordsById.get(
+      article.seriesId,
+    );
 
   if (!series) {
     throw new Error(
@@ -216,7 +273,10 @@ function validateArticleSeries(
     );
   }
 
-  if (series.contentType !== 'series') {
+  if (
+    series.contentType !==
+    'series'
+  ) {
     throw new Error(
       `${article.id} seriesId does not point to a series: ${article.seriesId}`,
     );
@@ -225,7 +285,9 @@ function validateArticleSeries(
   const partKey =
     `${article.seriesId}:${article.seriesPart}`;
 
-  if (seriesParts.has(partKey)) {
+  if (
+    seriesParts.has(partKey)
+  ) {
     throw new Error(
       `Duplicate series part: ${partKey}`,
     );
@@ -233,7 +295,11 @@ function validateArticleSeries(
 
   seriesParts.add(partKey);
 
-  if (!series.partIds.includes(article.id)) {
+  if (
+    !series.partIds.includes(
+      article.id,
+    )
+  ) {
     throw new Error(
       `${article.id} is missing from ${series.id}.partIds`,
     );
@@ -247,10 +313,16 @@ function validateSeriesMembers(
     ContentRecord
   >,
 ): void {
-  const seenMembers = new Set<string>();
+  const seenMembers =
+    new Set<string>();
 
-  for (const partId of series.partIds) {
-    if (seenMembers.has(partId)) {
+  for (
+    const partId of
+    series.partIds
+  ) {
+    if (
+      seenMembers.has(partId)
+    ) {
       throw new Error(
         `${series.id} contains duplicate member: ${partId}`,
       );
@@ -258,7 +330,10 @@ function validateSeriesMembers(
 
     seenMembers.add(partId);
 
-    const member = recordsById.get(partId);
+    const member =
+      recordsById.get(
+        partId,
+      );
 
     if (!member) {
       throw new Error(
@@ -266,13 +341,19 @@ function validateSeriesMembers(
       );
     }
 
-    if (member.contentType !== 'article') {
+    if (
+      member.contentType !==
+      'article'
+    ) {
       throw new Error(
         `${series.id} member is not an article: ${partId}`,
       );
     }
 
-    if (member.seriesId !== series.id) {
+    if (
+      member.seriesId !==
+      series.id
+    ) {
       throw new Error(
         `${partId} does not point back to series ${series.id}`,
       );
@@ -280,6 +361,7 @@ function validateSeriesMembers(
   }
 }
 
-export const contentRegistry = validateRegistry(
-  sourceRecords,
-);
+export const contentRegistry =
+  validateRegistry(
+    sourceRecords,
+  );

@@ -17,12 +17,20 @@ import {
 } from 'wouter';
 
 import {
+  LoadMore,
+} from '@/components/navigation/LoadMore';
+
+import {
   contentRegistry,
 } from '@/content/engine/registry';
 
 import {
   getDiscoverableByType,
 } from '@/content/engine/queries';
+
+import {
+  useProgressiveReveal,
+} from '@/hooks/useProgressiveReveal';
 
 function formatPublicationDate(
   value: string,
@@ -35,7 +43,9 @@ function formatPublicationDate(
       day: 'numeric',
       timeZone: 'UTC',
     },
-  ).format(new Date(value));
+  ).format(
+    new Date(value),
+  );
 }
 
 export default function Articles() {
@@ -44,7 +54,17 @@ export default function Articles() {
       getDiscoverableByType(
         contentRegistry,
         'article',
-      ),
+      )
+        .slice()
+        .sort(
+          (left, right) =>
+            Date.parse(
+              right.publishedAt,
+            ) -
+            Date.parse(
+              left.publishedAt,
+            ),
+        ),
     [],
   );
 
@@ -60,7 +80,9 @@ export default function Articles() {
         ),
       ),
     ],
-    [articles],
+    [
+      articles,
+    ],
   );
 
   const [
@@ -68,19 +90,37 @@ export default function Articles() {
     setSelectedCategory,
   ] = useState('All');
 
-  const filteredArticles = useMemo(
-    () =>
-      selectedCategory === 'All'
-        ? articles
-        : articles.filter(
-            (article) =>
-              article.category ===
-              selectedCategory,
-          ),
-    [
-      articles,
-      selectedCategory,
-    ],
+  const filteredArticles =
+    useMemo(
+      () =>
+        selectedCategory ===
+        'All'
+          ? articles
+          : articles.filter(
+              (article) =>
+                article.category ===
+                selectedCategory,
+            ),
+      [
+        articles,
+        selectedCategory,
+      ],
+    );
+
+  const {
+    visibleItems:
+      visibleArticles,
+    visibleCount,
+    totalCount,
+    remainingCount,
+    canLoadMore,
+    loadMore,
+  } = useProgressiveReveal(
+    filteredArticles,
+    {
+      initialCount: 6,
+      increment: 6,
+    },
   );
 
   return (
@@ -121,10 +161,10 @@ export default function Articles() {
               'text-muted-foreground',
             ].join(' ')}
           >
-            Technical guides, tutorials, and
-            deep dives on geospatial analysis,
-            GeoAI, cartography, and data
-            workflows.
+            Technical guides, tutorials,
+            and deep dives on geospatial
+            analysis, GeoAI, cartography,
+            and data workflows.
           </p>
         </motion.header>
 
@@ -188,16 +228,22 @@ export default function Articles() {
             'md:grid-cols-2',
           ].join(' ')}
         >
-          {filteredArticles.map(
-            (article, index) => {
+          {visibleArticles.map(
+            (
+              article,
+              index,
+            ) => {
               const image =
                 article.thumbnail ??
                 article.banner;
 
               const authorLabel =
-                article.authors.length === 1
-                  ? article.authors[0].name
-                  : article.authors.length > 1
+                article.authors.length ===
+                1
+                  ? article.authors[0]
+                      .name
+                  : article.authors
+                        .length > 1
                     ? 'Multiple Authors'
                     : 'The Kalabash Mosaics';
 
@@ -213,7 +259,8 @@ export default function Articles() {
                     y: 0,
                   }}
                   transition={{
-                    delay: index * 0.05,
+                    delay:
+                      index * 0.05,
                   }}
                   className={[
                     'group overflow-hidden',
@@ -245,8 +292,12 @@ export default function Articles() {
                     >
                       {image ? (
                         <img
-                          src={image.src}
-                          alt={image.alt}
+                          src={
+                            image.src
+                          }
+                          alt={
+                            image.alt
+                          }
                           loading={
                             index < 2
                               ? 'eager'
@@ -273,7 +324,8 @@ export default function Articles() {
                             'text-muted-foreground',
                           ].join(' ')}
                         >
-                          The Kalabash Mosaics
+                          The Kalabash
+                          Mosaics
                         </div>
                       )}
                     </div>
@@ -322,11 +374,9 @@ export default function Articles() {
                             article.publishedAt
                           }
                         >
-                          {
-                            formatPublicationDate(
-                              article.publishedAt,
-                            )
-                          }
+                          {formatPublicationDate(
+                            article.publishedAt,
+                          )}
                         </time>
 
                         <span
@@ -412,6 +462,23 @@ export default function Articles() {
             },
           )}
         </div>
+
+        {canLoadMore && (
+          <LoadMore
+            visibleCount={
+              visibleCount
+            }
+            totalCount={
+              totalCount
+            }
+            remainingCount={
+              remainingCount
+            }
+            onLoadMore={
+              loadMore
+            }
+          />
+        )}
 
         {filteredArticles.length ===
           0 && (

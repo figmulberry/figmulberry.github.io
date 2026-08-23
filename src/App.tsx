@@ -47,6 +47,9 @@ import ArticlePage from
 import ArticlePreview from
   '@/pages/articles/ArticlePreview';
 
+import BlogDetailPage from
+  '@/pages/blogs/BlogDetailPage';
+
 const queryClient =
   new QueryClient();
 
@@ -85,6 +88,11 @@ function Router() {
           <Route
             path="/preview/articles/:slug"
             component={ArticlePreview}
+          />
+
+          <Route
+            path="/blog/:slug"
+            component={BlogDetailPage}
           />
 
           <Route

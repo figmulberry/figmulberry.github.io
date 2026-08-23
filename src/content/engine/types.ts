@@ -149,7 +149,14 @@ export type ProjectContent = ContentBase & {
 
 export type MediaType =
   | 'video'
+  | 'tutorial'
   | 'presentation'
+  | 'poetry'
+  | 'lightning-talk'
+  | 'keynote'
+  | 'interview'
+  | 'discussion'
+  | 'demo'
   | 'podcast'
   | 'gallery'
   | 'download';
@@ -157,7 +164,8 @@ export type MediaType =
 export type MediaContent = ContentBase & {
   contentType: 'media';
   mediaType: MediaType;
-  duration?: string;
+    cardDescription?: string;
+duration?: string;
   platform?: string;
   externalUrl?: string;
   embedUrl?: string;
