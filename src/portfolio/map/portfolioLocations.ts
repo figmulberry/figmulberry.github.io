@@ -223,5 +223,93 @@ export const PORTFOLIO_LOCATIONS =
       sortOrder:
         40,
     },
+
+
+    {
+      id:
+        'park:acadia-national-park',
+
+      label:
+        'Acadia National Park',
+
+      shortLabel:
+        'Acadia',
+
+      level:
+        'park',
+
+      parentId:
+        'country:usa',
+
+      /*
+       * Representative Acadia National Park anchor.
+       *
+       * Projects covering the park generally can reuse this
+       * location. Exact field sites should use child locations.
+       */
+      anchor:
+        [
+          -68.2733,
+          44.3386,
+        ],
+
+      bounds:
+        [
+          [
+            -68.45,
+            44.20,
+          ],
+          [
+            -68.05,
+            44.45,
+          ],
+        ],
+
+      sortOrder:
+        10,
+    },
+
+
+    {
+      id:
+        'site:cadillac-mountain',
+
+      label:
+        'Cadillac Mountain, Acadia National Park',
+
+      shortLabel:
+        'Cadillac Mountain',
+
+      level:
+        'site',
+
+      parentId:
+        'park:acadia-national-park',
+
+      /*
+       * Precise-site test anchor.
+       */
+      anchor:
+        [
+          -68.2249,
+          44.3520,
+        ],
+
+      bounds:
+        [
+          [
+            -68.25,
+            44.33,
+          ],
+          [
+            -68.20,
+            44.37,
+          ],
+        ],
+
+      sortOrder:
+        10,
+    },
   ] as const satisfies
     readonly PortfolioLocation[];
+

@@ -47,6 +47,11 @@ import {
   PORTFOLIO_LOCATIONS,
 } from './map/portfolioLocations';
 
+
+import {
+  validatePortfolioMapData,
+} from './map/validatePortfolioMapData';
+
 import {
   ROOT_LOCATION_ID,
   type SemanticProjectRecord,
@@ -97,6 +102,48 @@ const MIN_ZOOM =
 
 const MAX_ZOOM =
   10;
+
+
+/*
+ * =========================================================
+ * AMCHARTS-STYLE CLUSTER LIFECYCLE
+ * =========================================================
+ *
+ * These values mirror the behavior of amCharts 5
+ * ClusteredPointSeries:
+ *
+ * minDistance: 20
+ * scatterDistance: 3
+ * scatterRadius: 8
+ * stopClusterZoom: 0.95
+ *
+ * We are reproducing the interaction model in the existing
+ * D3 map rather than adding amCharts as a dependency.
+ * =========================================================
+ */
+
+const CLUSTER_MIN_DISTANCE =
+  20;
+
+
+const SCATTER_DISTANCE =
+  3;
+
+
+const SCATTER_RADIUS =
+  8;
+
+
+const STOP_CLUSTER_ZOOM =
+  MAX_ZOOM *
+  0.95;
+
+
+const CLUSTER_REVEAL_DISTANCE =
+  CLUSTER_MIN_DISTANCE *
+  1.65;
+
+
 
 
 const PROJECT_ACTIVATION_ZOOM =
@@ -954,8 +1001,21 @@ export default function PortfolioMap() {
 
   const mappedPortfolioProjects =
     useMemo(
-      () =>
-        getMappedPortfolioProjects(),
+      () => {
+        const projects =
+          getMappedPortfolioProjects();
+
+
+        validatePortfolioMapData({
+          locations:
+            PORTFOLIO_LOCATIONS,
+
+          projects,
+        });
+
+
+        return projects;
+      },
       [],
     );
 
@@ -1104,13 +1164,24 @@ export default function PortfolioMap() {
    */
 
 
+  /*
+   * =====================================================
+   * PERMANENT SEMANTIC PROJECT POINT DATASET
+   * =====================================================
+   *
+   * Equivalent to amCharts keeping every original dataItem
+   * in the ClusteredPointSeries.
+   *
+   * Camera movement changes projected positions.
+   * Clustering changes presentation.
+   *
+   * Neither operation removes unrelated projects.
+   * =====================================================
+   */
+
   const projectFeatures =
     useMemo(
       () => {
-        const projects =
-          mappedPortfolioProjects;
-
-
         const features:
           Array<
             Feature<
@@ -1121,10 +1192,99 @@ export default function PortfolioMap() {
           [];
 
 
-        projects.forEach(
+        mappedPortfolioProjects.forEach(
           (
             project,
           ) => {
+            const placements =
+              project.mapPlacements ??
+              [];
+
+
+            /*
+             * Preferred path:
+             * semantic location registry.
+             */
+            if (
+              placements.length >
+              0
+            ) {
+              placements.forEach(
+                (
+                  placement,
+                ) => {
+                  const location =
+                    semanticLocationIndex
+                      .byId
+                      .get(
+                        placement.locationId,
+                      );
+
+
+                  if (
+                    !location
+                  ) {
+                    throw new Error(
+                      `Unknown semantic portfolio location: ${placement.locationId}`,
+                    );
+                  }
+
+
+                  const markerId =
+                    `${project.id}:${location.id}`;
+
+
+                  features.push({
+                    type:
+                      'Feature',
+
+                    geometry: {
+                      type:
+                        'Point',
+
+                      coordinates: [
+                        location.anchor[0],
+                        location.anchor[1],
+                      ],
+                    },
+
+                    properties: {
+                      markerId,
+
+                      projectId:
+                        project.id,
+
+                      locationId:
+                        location.id,
+
+                      title:
+                        project.title,
+
+                      slug:
+                        project.slug,
+
+                      category:
+                        project.category,
+
+                      locationLabel:
+                        location.label,
+                    },
+                  });
+                },
+              );
+
+
+              return;
+            }
+
+
+            /*
+             * Migration fallback.
+             *
+             * A future project that has not yet received
+             * mapPlacements still appears through its legacy
+             * coordinates rather than silently disappearing.
+             */
             project.locations.forEach(
               (
                 location,
@@ -1175,10 +1335,15 @@ export default function PortfolioMap() {
         );
 
 
+
+
+
+
         return features;
       },
       [
         mappedPortfolioProjects,
+        semanticLocationIndex,
       ],
     );
 
@@ -1507,6 +1672,21 @@ export default function PortfolioMap() {
    */
 
 
+  /*
+   * =====================================================
+   * AMCHARTS-STYLE PROJECT CLUSTERING
+   * =====================================================
+   *
+   * Derived from the observed ClusteredPointSeries lifecycle:
+   *
+   * 1. keep all source points;
+   * 2. re-project on camera change;
+   * 3. cluster projected points using a spatial grid + BFS;
+   * 4. stop normal clustering near maximum zoom;
+   * 5. scatter only extremely close points.
+   * =====================================================
+   */
+
   const renderedMarkers =
     useMemo<
       RenderedMarker[]
@@ -1517,15 +1697,6 @@ export default function PortfolioMap() {
         ) {
           return [];
         }
-
-
-        const MIN_DISTANCE =
-          20;
-
-
-        const MIN_DISTANCE_SQUARED =
-          MIN_DISTANCE *
-          MIN_DISTANCE;
 
 
         type Candidate = {
@@ -1565,13 +1736,7 @@ export default function PortfolioMap() {
 
 
             /*
-             * Once the globe is settled, points on its
-             * far side must not participate in visible
-             * clustering.
-             *
-             * During the projection transition we allow
-             * the shared projection pipeline to carry
-             * the points with the geography.
+             * Preserve the current globe-side clipping rule.
              */
             if (
               projectionMode ===
@@ -1637,70 +1802,526 @@ export default function PortfolioMap() {
 
 
         /*
-         * Grid index.
-         *
-         * Cell width equals MIN_DISTANCE. Therefore a
-         * point within 20 px can only be found in its
-         * own cell or one of the eight neighboring cells.
+         * -----------------------------------------------
+         * Shared spatial-grid/BFS component builder.
+         * -----------------------------------------------
          */
-        const grid =
-          new Map<
-            string,
-            number[]
-          >();
 
-
-        candidates.forEach(
+        const buildComponents =
           (
-            candidate,
-            candidateIndex,
-          ) => {
-            const cellX =
-              Math.floor(
-                candidate.x /
-                  MIN_DISTANCE,
-              );
-
-
-            const cellY =
-              Math.floor(
-                candidate.y /
-                  MIN_DISTANCE,
-              );
-
-
-            const key =
-              `${cellX}:${cellY}`;
-
-
-            const existing =
-              grid.get(
-                key,
-              );
-
-
+            distance:
+              number,
+          ):
+            number[][] => {
             if (
-              existing
+              candidates.length ===
+              0
             ) {
-              existing.push(
+              return [];
+            }
+
+
+            const distanceSquared =
+              distance *
+              distance;
+
+
+            const grid =
+              new Map<
+                string,
+                number[]
+              >();
+
+
+            candidates.forEach(
+              (
+                candidate,
                 candidateIndex,
+              ) => {
+                const cellX =
+                  Math.floor(
+                    candidate.x /
+                      distance,
+                  );
+
+                const cellY =
+                  Math.floor(
+                    candidate.y /
+                      distance,
+                  );
+
+                const key =
+                  `${cellX}:${cellY}`;
+
+                const existing =
+                  grid.get(
+                    key,
+                  );
+
+
+                if (
+                  existing
+                ) {
+                  existing.push(
+                    candidateIndex,
+                  );
+                }
+                else {
+                  grid.set(
+                    key,
+                    [
+                      candidateIndex,
+                    ],
+                  );
+                }
+              },
+            );
+
+
+            const visited =
+              new Uint8Array(
+                candidates.length,
               );
-            }
-            else {
-              grid.set(
-                key,
+
+
+            const components:
+              number[][] =
+              [];
+
+
+            for (
+              let startIndex =
+                0;
+              startIndex <
+                candidates.length;
+              startIndex +=
+                1
+            ) {
+              if (
+                visited[
+                  startIndex
+                ]
+              ) {
+                continue;
+              }
+
+
+              visited[
+                startIndex
+              ] =
+                1;
+
+
+              const component:
+                number[] =
                 [
-                  candidateIndex,
-                ],
+                  startIndex,
+                ];
+
+
+              const queue:
+                number[] =
+                [
+                  startIndex,
+                ];
+
+
+              let queueIndex =
+                0;
+
+
+              while (
+                queueIndex <
+                queue.length
+              ) {
+                const currentIndex =
+                  queue[
+                    queueIndex
+                  ];
+
+
+                queueIndex +=
+                  1;
+
+
+                const current =
+                  candidates[
+                    currentIndex
+                  ];
+
+
+                const currentCellX =
+                  Math.floor(
+                    current.x /
+                      distance,
+                  );
+
+                const currentCellY =
+                  Math.floor(
+                    current.y /
+                      distance,
+                  );
+
+
+                for (
+                  let offsetX =
+                    -1;
+                  offsetX <=
+                    1;
+                  offsetX +=
+                    1
+                ) {
+                  for (
+                    let offsetY =
+                      -1;
+                    offsetY <=
+                      1;
+                    offsetY +=
+                      1
+                  ) {
+                    const neighborCell =
+                      grid.get(
+                        `${
+                          currentCellX +
+                          offsetX
+                        }:${
+                          currentCellY +
+                          offsetY
+                        }`,
+                      );
+
+
+                    if (
+                      !neighborCell
+                    ) {
+                      continue;
+                    }
+
+
+                    neighborCell.forEach(
+                      (
+                        neighborIndex,
+                      ) => {
+                        if (
+                          visited[
+                            neighborIndex
+                          ]
+                        ) {
+                          return;
+                        }
+
+
+                        const neighbor =
+                          candidates[
+                            neighborIndex
+                          ];
+
+
+                        const deltaX =
+                          neighbor.x -
+                          current.x;
+
+                        const deltaY =
+                          neighbor.y -
+                          current.y;
+
+
+                        if (
+                          deltaX *
+                            deltaX +
+                            deltaY *
+                            deltaY >=
+                          distanceSquared
+                        ) {
+                          return;
+                        }
+
+
+                        visited[
+                          neighborIndex
+                        ] =
+                          1;
+
+
+                        component.push(
+                          neighborIndex,
+                        );
+
+
+                        queue.push(
+                          neighborIndex,
+                        );
+                      },
+                    );
+                  }
+                }
+              }
+
+
+              components.push(
+                component,
               );
             }
-          },
-        );
 
 
-        const visited =
-          new Uint8Array(
-            candidates.length,
+            return components;
+          };
+
+
+        /*
+         * -----------------------------------------------
+         * TERMINAL SCATTER MODE
+         * -----------------------------------------------
+         *
+         * amCharts stops clustering near max zoom and then
+         * scatters extremely-close projected points.
+         *
+         * We use the same 3px grouping threshold and an
+         * 8px collision radius.
+         * -----------------------------------------------
+         */
+
+        if (
+          zoom >=
+          STOP_CLUSTER_ZOOM
+        ) {
+          const scatterComponents =
+            buildComponents(
+              SCATTER_DISTANCE,
+            );
+
+
+          const markers:
+            RenderedMarker[] =
+            [];
+
+
+          scatterComponents.forEach(
+            (
+              component,
+            ) => {
+              if (
+                component.length ===
+                1
+              ) {
+                const candidate =
+                  candidates[
+                    component[0]
+                  ];
+
+
+                markers.push({
+                  key:
+                    candidate
+                      .properties
+                      .markerId,
+
+                  longitude:
+                    candidate.longitude,
+
+                  latitude:
+                    candidate.latitude,
+
+                  x:
+                    candidate.x,
+
+                  y:
+                    candidate.y,
+
+                  cluster:
+                    false,
+
+                  project:
+                    candidate.properties,
+
+                  projects: [
+                    candidate.properties,
+                  ],
+                });
+
+
+                return;
+              }
+
+
+              /*
+               * Deterministic spiral placement.
+               *
+               * This mirrors amCharts' collision-avoiding
+               * spiral concept without importing its layout
+               * internals.
+               */
+              const placed:
+                Array<{
+                  x:
+                    number;
+
+                  y:
+                    number;
+                }> =
+                [];
+
+
+              component.forEach(
+                (
+                  candidateIndex,
+                  memberIndex,
+                ) => {
+                  const candidate =
+                    candidates[
+                      candidateIndex
+                    ];
+
+
+                  let attempt =
+                    memberIndex;
+
+                  let offsetX =
+                    0;
+
+                  let offsetY =
+                    0;
+
+                  let accepted =
+                    false;
+
+
+                  while (
+                    !accepted &&
+                    attempt <
+                      500
+                  ) {
+                    if (
+                      attempt ===
+                      0
+                    ) {
+                      offsetX =
+                        0;
+
+                      offsetY =
+                        0;
+                    }
+                    else {
+                      const angle =
+                        attempt *
+                        2.399963229728653;
+
+                      const radius =
+                        SCATTER_RADIUS *
+                        1.35 *
+                        Math.sqrt(
+                          attempt,
+                        );
+
+
+                      offsetX =
+                        Math.cos(
+                          angle,
+                        ) *
+                        radius;
+
+                      offsetY =
+                        Math.sin(
+                          angle,
+                        ) *
+                        radius;
+                    }
+
+
+                    accepted =
+                      placed.every(
+                        (
+                          prior,
+                        ) => {
+                          const dx =
+                            offsetX -
+                            prior.x;
+
+                          const dy =
+                            offsetY -
+                            prior.y;
+
+
+                          return (
+                            dx *
+                              dx +
+                              dy *
+                              dy >=
+                            (
+                              SCATTER_RADIUS *
+                              2
+                            ) **
+                              2
+                          );
+                        },
+                      );
+
+
+                    if (
+                      !accepted
+                    ) {
+                      attempt +=
+                        1;
+                    }
+                  }
+
+
+                  placed.push({
+                    x:
+                      offsetX,
+
+                    y:
+                      offsetY,
+                  });
+
+
+                  markers.push({
+                    key:
+                      `scatter:${candidate.properties.markerId}`,
+
+                    longitude:
+                      candidate.longitude,
+
+                    latitude:
+                      candidate.latitude,
+
+                    x:
+                      candidate.x +
+                      offsetX,
+
+                    y:
+                      candidate.y +
+                      offsetY,
+
+                    cluster:
+                      false,
+
+                    project:
+                      candidate.properties,
+
+                    projects: [
+                      candidate.properties,
+                    ],
+                  });
+                },
+              );
+            },
+          );
+
+
+          return markers;
+        }
+
+
+        /*
+         * -----------------------------------------------
+         * NORMAL 20PX CLUSTER MODE
+         * -----------------------------------------------
+         */
+
+        const components =
+          buildComponents(
+            CLUSTER_MIN_DISTANCE,
           );
 
 
@@ -1709,344 +2330,149 @@ export default function PortfolioMap() {
           [];
 
 
-        /*
-         * Build connected components using BFS.
-         *
-         * If A is close to B and B is close to C,
-         * all three belong to the same visible cluster,
-         * even when A and C are slightly farther apart.
-         */
-        for (
-          let startIndex =
-            0;
-          startIndex <
-            candidates.length;
-          startIndex +=
-            1
-        ) {
-          if (
-            visited[
-              startIndex
-            ]
-          ) {
-            continue;
-          }
-
-
-          visited[
-            startIndex
-          ] =
-            1;
-
-
-          const component:
-            number[] =
-            [
-              startIndex,
-            ];
-
-
-          const queue:
-            number[] =
-            [
-              startIndex,
-            ];
-
-
-          let queueIndex =
-            0;
-
-
-          while (
-            queueIndex <
-            queue.length
-          ) {
-            const currentIndex =
-              queue[
-                queueIndex
-              ];
-
-
-            queueIndex +=
-              1;
-
-
-            const current =
-              candidates[
-                currentIndex
-              ];
-
-
-            const currentCellX =
-              Math.floor(
-                current.x /
-                  MIN_DISTANCE,
-              );
-
-
-            const currentCellY =
-              Math.floor(
-                current.y /
-                  MIN_DISTANCE,
-              );
-
-
-            for (
-              let offsetX =
-                -1;
-              offsetX <=
-                1;
-              offsetX +=
-                1
+        components.forEach(
+          (
+            component,
+          ) => {
+            if (
+              component.length ===
+              1
             ) {
-              for (
-                let offsetY =
-                  -1;
-                offsetY <=
-                  1;
-                offsetY +=
-                  1
-              ) {
-                const neighborCell =
-                  grid.get(
-                    `${
-                      currentCellX +
-                      offsetX
-                    }:${
-                      currentCellY +
-                      offsetY
-                    }`,
-                  );
+              const candidate =
+                candidates[
+                  component[0]
+                ];
 
 
-                if (
-                  !neighborCell
-                ) {
-                  continue;
-                }
+              markers.push({
+                key:
+                  candidate
+                    .properties
+                    .markerId,
+
+                longitude:
+                  candidate.longitude,
+
+                latitude:
+                  candidate.latitude,
+
+                x:
+                  candidate.x,
+
+                y:
+                  candidate.y,
+
+                cluster:
+                  false,
+
+                project:
+                  candidate.properties,
+
+                projects: [
+                  candidate.properties,
+                ],
+              });
 
 
-                neighborCell.forEach(
-                  (
-                    neighborIndex,
-                  ) => {
-                    if (
-                      visited[
-                        neighborIndex
-                      ]
-                    ) {
-                      return;
-                    }
-
-
-                    const neighbor =
-                      candidates[
-                        neighborIndex
-                      ];
-
-
-                    const deltaX =
-                      neighbor.x -
-                      current.x;
-
-
-                    const deltaY =
-                      neighbor.y -
-                      current.y;
-
-
-                    const distanceSquared =
-                      deltaX *
-                        deltaX +
-                      deltaY *
-                        deltaY;
-
-
-                    if (
-                      distanceSquared >
-                      MIN_DISTANCE_SQUARED
-                    ) {
-                      return;
-                    }
-
-
-                    visited[
-                      neighborIndex
-                    ] =
-                      1;
-
-
-                    component.push(
-                      neighborIndex,
-                    );
-
-
-                    queue.push(
-                      neighborIndex,
-                    );
-                  },
-                );
-              }
+              return;
             }
-          }
 
 
-          /*
-           * A component with one project remains an
-           * ordinary project marker.
-           */
-          if (
-            component.length ===
-            1
-          ) {
-            const candidate =
-              candidates[
-                component[0]
-              ];
+            let xTotal =
+              0;
+
+            let yTotal =
+              0;
+
+            let longitudeTotal =
+              0;
+
+            let latitudeTotal =
+              0;
+
+
+            const projects:
+              ProjectMarkerProperties[] =
+              [];
+
+
+            component.forEach(
+              (
+                candidateIndex,
+              ) => {
+                const candidate =
+                  candidates[
+                    candidateIndex
+                  ];
+
+
+                xTotal +=
+                  candidate.x;
+
+                yTotal +=
+                  candidate.y;
+
+                longitudeTotal +=
+                  candidate.longitude;
+
+                latitudeTotal +=
+                  candidate.latitude;
+
+
+                projects.push(
+                  candidate.properties,
+                );
+              },
+            );
+
+
+            const count =
+              component.length;
+
+
+            const stableIds =
+              projects
+                .map(
+                  (
+                    project,
+                  ) =>
+                    project.markerId,
+                )
+                .sort()
+                .join(
+                  '|',
+                );
 
 
             markers.push({
               key:
-                candidate
-                  .properties
-                  .markerId,
+                `cluster:${stableIds}`,
 
               longitude:
-                candidate
-                  .longitude,
+                longitudeTotal /
+                count,
 
               latitude:
-                candidate
-                  .latitude,
+                latitudeTotal /
+                count,
 
               x:
-                candidate.x,
+                xTotal /
+                count,
 
               y:
-                candidate.y,
+                yTotal /
+                count,
 
               cluster:
-                false,
+                true,
 
-              project:
-                candidate
-                  .properties,
+              count,
 
-              projects: [
-                candidate
-                  .properties,
-              ],
+              projects,
             });
-
-
-            continue;
-          }
-
-
-          /*
-           * A visible cluster is positioned at the
-           * screen-space centroid of its members.
-           *
-           * Geographic averages are retained separately
-           * for navigation/focus behavior.
-           */
-          let xTotal =
-            0;
-
-          let yTotal =
-            0;
-
-          let longitudeTotal =
-            0;
-
-          let latitudeTotal =
-            0;
-
-
-          const projects:
-            ProjectMarkerProperties[] =
-            [];
-
-
-          component.forEach(
-            (
-              candidateIndex,
-            ) => {
-              const candidate =
-                candidates[
-                  candidateIndex
-                ];
-
-
-              xTotal +=
-                candidate.x;
-
-              yTotal +=
-                candidate.y;
-
-              longitudeTotal +=
-                candidate
-                  .longitude;
-
-              latitudeTotal +=
-                candidate
-                  .latitude;
-
-
-              projects.push(
-                candidate
-                  .properties,
-              );
-            },
-          );
-
-
-          const count =
-            component.length;
-
-
-          const stableIds =
-            projects
-              .map(
-                (
-                  project,
-                ) =>
-                  project.markerId,
-              )
-              .sort()
-              .join(
-                '|',
-              );
-
-
-          markers.push({
-            key:
-              `cluster:${stableIds}`,
-
-            longitude:
-              longitudeTotal /
-              count,
-
-            latitude:
-              latitudeTotal /
-              count,
-
-            x:
-              xTotal /
-              count,
-
-            y:
-              yTotal /
-              count,
-
-            cluster:
-              true,
-
-            count,
-
-            projects,
-          });
-        }
+          },
+        );
 
 
         return markers;
@@ -2057,6 +2483,7 @@ export default function PortfolioMap() {
         projectFeatures,
         projectPoint,
         projectionMode,
+        zoom,
       ],
     );
 
@@ -3290,6 +3717,21 @@ export default function PortfolioMap() {
    */
 
 
+  /*
+   * =====================================================
+   * AMCHARTS-STYLE CLUSTER DRILL-DOWN
+   * =====================================================
+   *
+   * Equivalent concept:
+   *
+   *   zoomToCluster(cluster.children)
+   *
+   * The cluster click changes ONLY the camera.
+   *
+   * It never removes projects from projectFeatures.
+   * =====================================================
+   */
+
   const handleClusterClick =
     useCallback(
       (
@@ -3305,114 +3747,83 @@ export default function PortfolioMap() {
         }
 
 
-        /*
-         * =================================================
-         * TERMINAL CLUSTER BEHAVIOR
-         * =================================================
-         *
-         * At MAX_ZOOM, another geographic zoom cannot
-         * separate projects that remain inside the fixed
-         * screen-space clustering threshold. Toggle a
-         * spiderfied expansion instead.
-         */
-        if (
-          zoom >=
-          MAX_ZOOM -
-            0.01
-        ) {
-          setSelectedProject(
-            null,
-          );
+        setSelectedProject(
+          null,
+        );
 
-          setHoveredCountry(
-            null,
-          );
-
-          setExpandedClusterKey(
-            (
-              current,
-            ) =>
-              current ===
-              marker.key
-                ? null
-                : marker.key,
-          );
-
-          return;
-        }
-
-
-        /*
-         * An ordinary cluster drill-down closes any prior
-         * screen-space expansion.
-         */
         setExpandedClusterKey(
           null,
         );
 
+        setHoveredCountry(
+          null,
+        );
 
-        const locations =
+
+        const childSources =
           marker.projects
             .map(
               (
                 project,
-              ) => {
-                const source =
-                  projectFeatures.find(
-                    (
-                      feature,
-                    ) =>
-                      feature
-                        .properties
-                        .markerId ===
-                      project.markerId,
-                  );
-
-
-                if (
-                  !source
-                ) {
-                  return null;
-                }
-
-
-                const [
-                  longitude,
-                  latitude,
-                ] =
-                  source
-                    .geometry
-                    .coordinates;
-
-
-                return {
-                  longitude,
-                  latitude,
-                };
-              },
+              ) =>
+                projectFeatures.find(
+                  (
+                    feature,
+                  ) =>
+                    feature
+                      .properties
+                      .markerId ===
+                    project.markerId,
+                ) ??
+                null,
             )
             .filter(
               (
-                location,
-              ): location is {
-                longitude:
-                  number;
-
-                latitude:
-                  number;
-              } =>
-                location !==
+                feature,
+              ): feature is Feature<
+                Point,
+                ProjectMarkerProperties
+              > =>
+                feature !==
                 null,
             );
 
 
         if (
-          locations.length <
+          childSources.length <
           2
         ) {
           return;
         }
 
+
+        const childCoordinates =
+          childSources.map(
+            (
+              feature,
+            ) => {
+              const [
+                longitude,
+                latitude,
+              ] =
+                feature
+                  .geometry
+                  .coordinates;
+
+
+              return {
+                longitude,
+                latitude,
+              };
+            },
+          );
+
+
+        /*
+         * -----------------------------------------------
+         * GEOGRAPHIC CENTER
+         * -----------------------------------------------
+         */
 
         let minLongitude =
           Infinity;
@@ -3427,7 +3838,7 @@ export default function PortfolioMap() {
           -Infinity;
 
 
-        locations.forEach(
+        childCoordinates.forEach(
           (
             location,
           ) => {
@@ -3458,9 +3869,6 @@ export default function PortfolioMap() {
         );
 
 
-        /*
-         * International-date-line protection.
-         */
         let targetLongitude =
           (
             minLongitude +
@@ -3474,12 +3882,15 @@ export default function PortfolioMap() {
           minLongitude;
 
 
+        /*
+         * International-date-line protection.
+         */
         if (
           longitudeSpan >
           180
         ) {
           const wrapped =
-            locations.map(
+            childCoordinates.map(
               (
                 location,
               ) =>
@@ -3533,85 +3944,259 @@ export default function PortfolioMap() {
           2;
 
 
-        const latitudeSpan =
-          maxLatitude -
-          minLatitude;
+        /*
+         * -----------------------------------------------
+         * PROJECTED CHILD SEPARATION
+         * -----------------------------------------------
+         *
+         * amCharts fits the camera to the cluster's child
+         * data items.
+         *
+         * In this D3 implementation we derive the one-step
+         * camera scale from those children's actual current
+         * projected spacing.
+         */
+
+        const projectedChildren =
+          childCoordinates
+            .map(
+              (
+                location,
+              ) => {
+                if (
+                  !projectPoint
+                ) {
+                  return null;
+                }
 
 
-        const effectiveSpan =
-          Math.max(
-            longitudeSpan,
-            latitudeSpan,
-            0.75,
-          );
+                const point =
+                  projectPoint([
+                    location.longitude,
+                    location.latitude,
+                  ]);
 
 
-        const spreadZoom =
-          30 /
-          effectiveSpan;
+                if (
+                  !point
+                ) {
+                  return null;
+                }
 
 
-        const progressiveZoom =
-          Math.min(
-            Math.max(
-              zoom *
-                2.15,
-              PROJECT_DISCOVERY_ZOOM,
-            ),
-            MAX_ZOOM,
-          );
+                return {
+                  longitude:
+                    location.longitude,
+
+                  latitude:
+                    location.latitude,
+
+                  x:
+                    point[0],
+
+                  y:
+                    point[1],
+                };
+              },
+            )
+            .filter(
+              (
+                item,
+              ): item is {
+                longitude:
+                  number;
+
+                latitude:
+                  number;
+
+                x:
+                  number;
+
+                y:
+                  number;
+              } =>
+                item !==
+                null,
+            );
 
 
-        const separationZoom =
-          effectiveSpan <=
+        let minimumDistinctDistance =
+          Infinity;
+
+
+        let distinctCoordinatePairs =
+          0;
+
+
+        for (
+          let firstIndex =
+            0;
+          firstIndex <
+            projectedChildren.length;
+          firstIndex +=
             1
-            ? MAX_ZOOM
-            : effectiveSpan <=
-                3
-              ? Math.max(
-                  7,
-                  spreadZoom,
-                )
-              : spreadZoom;
+        ) {
+          for (
+            let secondIndex =
+              firstIndex +
+              1;
+            secondIndex <
+              projectedChildren.length;
+            secondIndex +=
+              1
+          ) {
+            const first =
+              projectedChildren[
+                firstIndex
+              ];
+
+            const second =
+              projectedChildren[
+                secondIndex
+              ];
 
 
-        const targetZoom =
-          clamp(
+            const geographicDelta =
+              Math.abs(
+                first.longitude -
+                second.longitude,
+              ) +
+              Math.abs(
+                first.latitude -
+                second.latitude,
+              );
+
+
+            /*
+             * Coincident geographic anchors cannot be
+             * separated by zoom.
+             */
+            if (
+              geographicDelta <
+              0.000001
+            ) {
+              continue;
+            }
+
+
+            distinctCoordinatePairs +=
+              1;
+
+
+            const deltaX =
+              second.x -
+              first.x;
+
+            const deltaY =
+              second.y -
+              first.y;
+
+
+            const distance =
+              Math.sqrt(
+                deltaX *
+                  deltaX +
+                  deltaY *
+                  deltaY,
+              );
+
+
+            minimumDistinctDistance =
+              Math.min(
+                minimumDistinctDistance,
+                distance,
+              );
+          }
+        }
+
+
+        let targetZoom:
+          number;
+
+
+        /*
+         * All children occupy the same legitimate geographic
+         * anchor.
+         *
+         * One click goes directly to terminal scatter range.
+         */
+        if (
+          distinctCoordinatePairs ===
+          0
+        ) {
+          targetZoom =
+            Math.min(
+              MAX_ZOOM,
+              STOP_CLUSTER_ZOOM +
+                0.05,
+            );
+        }
+        else {
+          const safeDistance =
             Math.max(
-              separationZoom,
-              progressiveZoom,
-              PROJECT_DISCOVERY_ZOOM,
-            ),
-            MIN_ZOOM,
-            MAX_ZOOM,
-          );
+              minimumDistinctDistance,
+              0.5,
+            );
 
 
-        setSelectedProject(
-          null,
-        );
+          const revealScale =
+            CLUSTER_REVEAL_DISTANCE /
+            safeDistance;
 
+
+          /*
+           * Never make a cluster click a meaningless nudge.
+           */
+          const progressiveScale =
+            Math.max(
+              revealScale,
+              1.35,
+            );
+
+
+          targetZoom =
+            clamp(
+              zoom *
+                progressiveScale,
+              Math.max(
+                zoom +
+                  0.35,
+                PROJECT_DISCOVERY_ZOOM,
+              ),
+              STOP_CLUSTER_ZOOM,
+            );
+        }
+
+
+        /*
+         * -----------------------------------------------
+         * CAMERA MOVE
+         * -----------------------------------------------
+         *
+         * There is no dataset filtering here.
+         *
+         * Arctic, Antarctic, Tutuila and every other project
+         * remain in projectFeatures throughout this action.
+         */
 
         animateCamera(
           [
             targetLongitude,
+
             clamp(
               targetLatitude,
               -82,
               82,
             ),
           ],
+
           targetZoom,
-        );
-
-
-        setHoveredCountry(
-          null,
         );
       },
       [
         animateCamera,
         projectFeatures,
+        projectPoint,
         zoom,
       ],
     );
