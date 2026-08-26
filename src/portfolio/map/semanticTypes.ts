@@ -23,7 +23,9 @@ export type GeographicBounds =
 export type LocationLevel =
   | 'global'
   | 'continent'
+  | 'zone'
   | 'country'
+  | 'territory'
   | 'region'
   | 'district'
   | 'place'
@@ -199,3 +201,4 @@ export type MapDrilldownState = {
     string |
     null;
 };
+

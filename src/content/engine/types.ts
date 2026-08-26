@@ -1,4 +1,4 @@
-export const CONTENT_TYPES = [
+﻿export const CONTENT_TYPES = [
   'article',
   'blog',
   'project',
@@ -131,6 +131,33 @@ export type ProjectOutcome = {
   description: string;
 };
 
+export type ProjectMapScope =
+  | 'global'
+  | 'country-wide'
+  | 'regional'
+  | 'place-wide'
+  | 'site-specific'
+  | 'multi-location';
+
+
+export type ProjectMapPlacement = {
+  locationId: string;
+
+  scope:
+    ProjectMapScope;
+};
+
+export type ProjectLocation = {
+  id: string;
+
+  label: string;
+
+  latitude: number;
+
+  longitude: number;
+};
+
+
 export type ProjectContent = ContentBase & {
   contentType: 'project';
   category: string;
@@ -138,6 +165,18 @@ export type ProjectContent = ContentBase & {
   client?: string;
   dateStarted?: string;
   dateCompleted?: string;
+
+  homepageFeatured?: boolean;
+  homepageFeaturedOrder?: number;
+
+  portfolioFeatured?: boolean;
+  portfolioOrder?: number;
+
+  locations: ProjectLocation[];
+
+  mapPlacements?:
+    ProjectMapPlacement[];
+
   challenge: string;
   approach: string;
   outcomes: ProjectOutcome[];
@@ -196,3 +235,4 @@ export type ContentRecord =
   | ToolContent
   | TopicContent
   | SeriesContent;
+

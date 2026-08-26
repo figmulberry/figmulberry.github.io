@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 import {
   CONTENT_STATUSES,
@@ -153,6 +153,42 @@ const projectOutcomeSchema = z.object({
   description: nonEmptyString,
 });
 
+const projectMapScopeSchema =
+  z.enum([
+    'global',
+    'country-wide',
+    'regional',
+    'place-wide',
+    'site-specific',
+    'multi-location',
+  ]);
+
+
+const projectMapPlacementSchema =
+  z.object({
+    locationId:
+      nonEmptyString,
+
+    scope:
+      projectMapScopeSchema,
+  });
+
+const projectLocationSchema = z.object({
+  id: nonEmptyString,
+
+  label: nonEmptyString,
+
+  latitude: z
+    .number()
+    .min(-90)
+    .max(90),
+
+  longitude: z
+    .number()
+    .min(-180)
+    .max(180),
+});
+
 export const projectSchema = contentBaseSchema.extend({
   contentType: z.literal('project'),
   category: nonEmptyString,
@@ -160,6 +196,39 @@ export const projectSchema = contentBaseSchema.extend({
   client: nonEmptyString.optional(),
   dateStarted: isoDateString.optional(),
   dateCompleted: isoDateString.optional(),
+
+  homepageFeatured: z
+    .boolean()
+    .optional(),
+
+  homepageFeaturedOrder: z
+    .number()
+    .int()
+    .nonnegative()
+    .optional(),
+
+  portfolioFeatured: z
+    .boolean()
+    .optional(),
+
+  portfolioOrder: z
+    .number()
+    .int()
+    .nonnegative()
+    .optional(),
+
+  locations: z
+    .array(
+      projectLocationSchema,
+    )
+    .default([]),
+
+  mapPlacements: z
+    .array(
+      projectMapPlacementSchema,
+    )
+    .default([]),
+
   challenge: nonEmptyString,
   approach: nonEmptyString,
   outcomes: z.array(projectOutcomeSchema).default([]),

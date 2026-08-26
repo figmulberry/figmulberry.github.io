@@ -35,6 +35,23 @@ import {
   getMappedPortfolioProjects,
 } from '@/lib/content/getPortfolioProjects';
 
+import {
+  buildDrilldownView,
+} from './map/buildDrilldownView';
+
+import {
+  buildLocationIndex,
+} from './map/locationHierarchy';
+
+import {
+  PORTFOLIO_LOCATIONS,
+} from './map/portfolioLocations';
+
+import {
+  ROOT_LOCATION_ID,
+  type SemanticProjectRecord,
+} from './map/semanticTypes';
+
 
 const HERO_BACKGROUND =
   '#111820';
@@ -925,6 +942,163 @@ export default function PortfolioMap() {
 
   /*
    * =====================================================
+   * SEMANTIC PORTFOLIO MAP ADAPTER
+   * =====================================================
+   *
+   * Save 3A establishes the semantic hierarchy beside the
+   * existing working marker renderer.
+   *
+   * Visible map behavior remains unchanged in this phase.
+   * =====================================================
+   */
+
+  const mappedPortfolioProjects =
+    useMemo(
+      () =>
+        getMappedPortfolioProjects(),
+      [],
+    );
+
+
+  const semanticLocationIndex =
+    useMemo(
+      () =>
+        buildLocationIndex(
+          PORTFOLIO_LOCATIONS,
+        ),
+      [],
+    );
+
+
+  const semanticProjects =
+    useMemo<
+      SemanticProjectRecord[]
+    >(
+      () =>
+        mappedPortfolioProjects.map(
+          (
+            project,
+          ) => ({
+            projectId:
+              project.id,
+
+            title:
+              project.title,
+
+            slug:
+              project.slug,
+
+            category:
+              project.category,
+
+            placements:
+              project.mapPlacements ??
+              [],
+          }),
+        ),
+      [
+        mappedPortfolioProjects,
+      ],
+    );
+
+
+  const [
+    currentSemanticLocationId,
+    setCurrentSemanticLocationId,
+  ] =
+    useState(
+      ROOT_LOCATION_ID,
+    );
+
+
+  const semanticDrilldownView =
+    useMemo(
+      () =>
+        buildDrilldownView({
+          index:
+            semanticLocationIndex,
+
+          currentLocationId:
+            currentSemanticLocationId,
+
+          projects:
+            semanticProjects,
+        }),
+      [
+        currentSemanticLocationId,
+        semanticLocationIndex,
+        semanticProjects,
+      ],
+    );
+
+
+  useEffect(
+    () => {
+      if (
+        semanticLocationIndex
+          .byId
+          .has(
+            currentSemanticLocationId,
+          )
+      ) {
+        return;
+      }
+
+
+      setCurrentSemanticLocationId(
+        ROOT_LOCATION_ID,
+      );
+    },
+    [
+      currentSemanticLocationId,
+      semanticLocationIndex,
+    ],
+  );
+
+
+  useEffect(
+    () => {
+      const knownProjectIds =
+        new Set(
+          semanticProjects.map(
+            (
+              project,
+            ) =>
+              project.projectId,
+          ),
+        );
+
+
+      semanticDrilldownView
+        .visibleProjectIds
+        .forEach(
+          (
+            projectId,
+          ) => {
+            if (
+              knownProjectIds.has(
+                projectId,
+              )
+            ) {
+              return;
+            }
+
+
+            throw new Error(
+              `Semantic portfolio map exposed unknown project: ${projectId}`,
+            );
+          },
+        );
+    },
+    [
+      semanticDrilldownView,
+      semanticProjects,
+    ],
+  );
+
+
+  /*
+   * =====================================================
    * REAL PROJECT DATA
    * =====================================================
    */
@@ -934,7 +1108,7 @@ export default function PortfolioMap() {
     useMemo(
       () => {
         const projects =
-          getMappedPortfolioProjects();
+          mappedPortfolioProjects;
 
 
         const features:
@@ -1003,7 +1177,9 @@ export default function PortfolioMap() {
 
         return features;
       },
-      [],
+      [
+        mappedPortfolioProjects,
+      ],
     );
 
 
