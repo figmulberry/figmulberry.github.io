@@ -1,4 +1,4 @@
-import thumbnail from './thumbnail.png';
+import thumbnail from './thumbnail.jpg';
 import body from './body.md?raw';
 
 import { mosesThiongo } from '@/content/shared/authors';
@@ -50,8 +50,8 @@ export const topoGridsPart2Article = {
     src: thumbnail,
     alt:
       'Historic topographic map showing contrasting contour, grid, wetland, and water styling.',
-    width: 4019,
-    height: 2261,
+    width: 1800,
+    height: 1013,
   },
 
   seriesId:
