@@ -26,6 +26,7 @@ import {
 } from './timezoneCenters';
 
 import {
+  calculateSolarPosition,
   getSolarDirectionVector,
 } from '../solar-engine/solarPosition';
 
@@ -42,7 +43,7 @@ const CELESTIAL_UPDATE_INTERVAL_MS =
   30_000;
 
 const AUTO_RETURN_DELAY_MS =
-  15_000;
+  30_000;
 
 const AUTO_RETURN_DURATION_MS =
   1_250;
@@ -76,6 +77,8 @@ export interface ProjectedSunPosition {
   surfaceY: number;
   angleDeg: number;
   frontFacing: number;
+  latitude: number;
+  longitude: number;
 }
 
 export interface ProjectedMoonPosition {
@@ -84,6 +87,8 @@ export interface ProjectedMoonPosition {
   surfaceY: number;
   angleDeg: number;
   frontFacing: number;
+  latitude: number;
+  longitude: number;
   illuminatedFraction: number;
   phaseAngleDeg: number;
   phaseName: string;
@@ -108,6 +113,35 @@ interface HeroGlobeProps {
 interface CityDisplayState {
   projected: ProjectedCityAnchor;
   showLabel: boolean;
+}
+
+function earthDirectionToCoordinates(
+  direction: {
+    x: number;
+    y: number;
+    z: number;
+  },
+) {
+  return {
+    latitude:
+      THREE.MathUtils.radToDeg(
+        Math.asin(
+          THREE.MathUtils.clamp(
+            direction.y,
+            -1,
+            1,
+          ),
+        ),
+      ),
+
+    longitude:
+      THREE.MathUtils.radToDeg(
+        Math.atan2(
+          -direction.z,
+          direction.x,
+        ),
+      ),
+  };
 }
 
 function getViewerTimeZone():
@@ -788,6 +822,11 @@ export default function HeroGlobe({
         0,
       );
 
+    let currentSolarPosition =
+      calculateSolarPosition(
+        new Date(),
+      );
+
     const moonDirectionEarth =
       new THREE.Vector3(
         1,
@@ -1009,6 +1048,14 @@ export default function HeroGlobe({
           surfaceY: 0.5,
           angleDeg,
           frontFacing,
+
+          latitude:
+            currentSolarPosition
+              .subsolarLatitude,
+
+          longitude:
+            currentSolarPosition
+              .subsolarLongitude,
         });
 
         return;
@@ -1069,6 +1116,14 @@ export default function HeroGlobe({
             0,
             1,
           ),
+
+        latitude:
+          currentSolarPosition
+            .subsolarLatitude,
+
+        longitude:
+          currentSolarPosition
+            .subsolarLongitude,
       });
     }
 
@@ -1111,6 +1166,11 @@ export default function HeroGlobe({
     }
 
     function updateProjectedMoon() {
+      const moonCoordinates =
+        earthDirectionToCoordinates(
+          moonDirectionEarth,
+        );
+
       camera.updateMatrixWorld(
         true,
       );
@@ -1165,6 +1225,12 @@ export default function HeroGlobe({
           surfaceY: 0.5,
           angleDeg,
           frontFacing,
+
+          latitude:
+            moonCoordinates.latitude,
+
+          longitude:
+            moonCoordinates.longitude,
 
           illuminatedFraction:
             currentMoonState
@@ -1243,6 +1309,12 @@ export default function HeroGlobe({
             0,
             1,
           ),
+
+        latitude:
+          moonCoordinates.latitude,
+
+        longitude:
+          moonCoordinates.longitude,
 
         illuminatedFraction:
           currentMoonState
@@ -1533,6 +1605,11 @@ export default function HeroGlobe({
     function updateCelestialState() {
       const now =
         new Date();
+
+      currentSolarPosition =
+        calculateSolarPosition(
+          now,
+        );
 
       const solar =
         getSolarDirectionVector(

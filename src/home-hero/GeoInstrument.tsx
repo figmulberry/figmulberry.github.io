@@ -27,15 +27,20 @@ interface SunDisplayPosition {
   leftPercent: number;
   topPercent: number;
   opacity: number;
+  latitude: number;
+  longitude: number;
 }
 
 interface MoonDisplayPosition {
   leftPercent: number;
   topPercent: number;
   opacity: number;
+  latitude: number;
+  longitude: number;
   illuminatedFraction: number;
   phaseAngleDeg: number;
   phaseName: string;
+  waxing: boolean;
   brightLimbAngleDeg: number;
 }
 
@@ -265,22 +270,104 @@ function InstrumentRing() {
   );
 }
 
+function formatLatitude(
+  value: number,
+): string {
+  return `${Math.abs(value).toFixed(2)}\u00B0 ${
+    value >= 0 ? 'N' : 'S'
+  }`;
+}
+
+
+function formatLongitude(
+  value: number,
+): string {
+  return `${Math.abs(value).toFixed(2)}\u00B0 ${
+    value >= 0 ? 'E' : 'W'
+  }`;
+}
+
+
+function CelestialDetails({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: {
+    label: string;
+    value: string;
+  }[];
+}) {
+  return (
+    <div
+      className={[
+        'pointer-events-none',
+        'absolute',
+        'left-1/2',
+        'top-full',
+        'z-50',
+        'mt-2',
+        'min-w-[180px]',
+        '-translate-x-1/2',
+        'rounded-md',
+        'border',
+        'border-white/15',
+        'bg-black/80',
+        'px-3',
+        'py-2.5',
+        'text-white',
+        'shadow-xl',
+        'backdrop-blur-md',
+      ].join(' ')}
+    >
+      <div
+        className="mb-2 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/70"
+      >
+        {title}
+      </div>
+
+      <dl className="space-y-1.5">
+        {rows.map(
+          row => (
+            <div
+              key={row.label}
+              className="grid grid-cols-[auto_1fr] gap-x-3 text-[0.68rem] leading-4"
+            >
+              <dt className="text-white/50">
+                {row.label}
+              </dt>
+
+              <dd className="text-right font-medium text-white/90">
+                {row.value}
+              </dd>
+            </div>
+          ),
+        )}
+      </dl>
+    </div>
+  );
+}
+
 function SunMarker({
   position,
 }: {
   position:
     SunDisplayPosition | null;
 }) {
+  const [
+    detailsVisible,
+    setDetailsVisible,
+  ] =
+    useState(false);
+
   if (!position) {
     return null;
   }
 
   return (
     <div
-      role="img"
-      aria-label="Current Sun position"
       className={[
-        'pointer-events-none',
+        'pointer-events-auto',
         'absolute',
         'z-40',
         '-translate-x-1/2',
@@ -297,9 +384,66 @@ function SunMarker({
           position.opacity,
       }}
     >
-      <SunDisk
-        size={72}
-      />
+      <button
+        type="button"
+        className="relative block cursor-pointer border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        aria-label={
+          `Sun. Latitude ${formatLatitude(
+            position.latitude,
+          )}. Longitude ${formatLongitude(
+            position.longitude,
+          )}.`
+        }
+        aria-expanded={
+          detailsVisible
+        }
+        onMouseEnter={() =>
+          setDetailsVisible(true)
+        }
+        onMouseLeave={() =>
+          setDetailsVisible(false)
+        }
+        onFocus={() =>
+          setDetailsVisible(true)
+        }
+        onBlur={() =>
+          setDetailsVisible(false)
+        }
+        onClick={() =>
+          setDetailsVisible(
+            current =>
+              !current,
+          )
+        }
+      >
+        <SunDisk
+          size={72}
+        />
+
+        {detailsVisible ? (
+          <CelestialDetails
+            title="Sun"
+            rows={[
+              {
+                label:
+                  'Latitude',
+                value:
+                  formatLatitude(
+                    position.latitude,
+                  ),
+              },
+              {
+                label:
+                  'Longitude',
+                value:
+                  formatLongitude(
+                    position.longitude,
+                  ),
+              },
+            ]}
+          />
+        ) : null}
+      </button>
     </div>
   );
 }
@@ -310,6 +454,12 @@ function MoonMarker({
   position:
     MoonDisplayPosition | null;
 }) {
+  const [
+    detailsVisible,
+    setDetailsVisible,
+  ] =
+    useState(false);
+
   if (!position) {
     return null;
   }
@@ -322,12 +472,8 @@ function MoonMarker({
 
   return (
     <div
-      role="img"
-      aria-label={
-        `${position.phaseName}, ${illuminationPercent}% illuminated`
-      }
       className={[
-        'pointer-events-none',
+        'pointer-events-auto',
         'absolute',
         'z-40',
         '-translate-x-1/2',
@@ -344,17 +490,90 @@ function MoonMarker({
           position.opacity,
       }}
     >
-      <div className="moon-marker">
-        <MoonSphere
-          phaseAngleDeg={
-            position.phaseAngleDeg
-          }
-          brightLimbAngleDeg={
-            position.brightLimbAngleDeg
-          }
-          size={52}
-        />
-      </div>
+      <button
+        type="button"
+        className="relative block cursor-pointer border-0 bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        aria-label={
+          `${position.phaseName}. ${illuminationPercent}% illuminated.`
+        }
+        aria-expanded={
+          detailsVisible
+        }
+        onMouseEnter={() =>
+          setDetailsVisible(true)
+        }
+        onMouseLeave={() =>
+          setDetailsVisible(false)
+        }
+        onFocus={() =>
+          setDetailsVisible(true)
+        }
+        onBlur={() =>
+          setDetailsVisible(false)
+        }
+        onClick={() =>
+          setDetailsVisible(
+            current =>
+              !current,
+          )
+        }
+      >
+        <div className="moon-marker">
+          <MoonSphere
+            phaseAngleDeg={
+              position.phaseAngleDeg
+            }
+            brightLimbAngleDeg={
+              position.brightLimbAngleDeg
+            }
+            size={52}
+          />
+        </div>
+
+        {detailsVisible ? (
+          <CelestialDetails
+            title="Moon"
+            rows={[
+              {
+                label:
+                  'Phase',
+                value:
+                  position.phaseName,
+              },
+              {
+                label:
+                  'Illuminated',
+                value:
+                  `${illuminationPercent}%`,
+              },
+              {
+                label:
+                  'Cycle',
+                value:
+                  position.waxing
+                    ? 'Waxing'
+                    : 'Waning',
+              },
+              {
+                label:
+                  'Latitude',
+                value:
+                  formatLatitude(
+                    position.latitude,
+                  ),
+              },
+              {
+                label:
+                  'Longitude',
+                value:
+                  formatLongitude(
+                    position.longitude,
+                  ),
+              },
+            ]}
+          />
+        ) : null}
+      </button>
     </div>
   );
 }
@@ -473,14 +692,23 @@ export default function GeoInstrument() {
           return;
         }
 
-        setSunPosition(
+        const display =
           getCelestialDisplayPosition(
             sun.surfaceX,
             sun.surfaceY,
             sun.angleDeg,
             sun.frontFacing,
-          ),
-        );
+          );
+
+        setSunPosition({
+          ...display,
+
+          latitude:
+            sun.latitude,
+
+          longitude:
+            sun.longitude,
+        });
       },
       [],
     );
@@ -514,6 +742,12 @@ export default function GeoInstrument() {
         setMoonPosition({
           ...display,
 
+          latitude:
+            moon.latitude,
+
+          longitude:
+            moon.longitude,
+
           illuminatedFraction:
             moon.illuminatedFraction,
 
@@ -522,6 +756,9 @@ export default function GeoInstrument() {
 
           phaseName:
             moon.phaseName,
+
+          waxing:
+            moon.waxing,
 
           brightLimbAngleDeg:
             moon.brightLimbAngleDeg,
