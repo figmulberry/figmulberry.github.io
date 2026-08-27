@@ -17,6 +17,13 @@ import {
 } from './cityAnchors';
 
 import {
+  createCountryBoundaryLayer,
+  createCountryHighlightLayer,
+  disposeCountryBoundaryLayer,
+  findCountryAtCoordinate,
+} from './countryBoundaries';
+
+import {
   createInteractivePresentationQuaternion,
   createPresentationQuaternion,
 } from './earthOrientation';
@@ -929,6 +936,183 @@ export default function HeroGlobe({
       earthMesh,
     );
 
+    /*
+     * Passive geographic context.
+     *
+     * Uses the same authoritative world-country GeoJSON
+     * as the Portfolio map.
+     *
+     * No fills.
+     * No labels.
+     * No hover.
+     * No pointer interception.
+     */
+    let countryBoundaries:
+      THREE.LineSegments |
+      null =
+      null;
+
+    let countryWorld:
+      Parameters<
+        typeof createCountryBoundaryLayer
+      >[0] |
+      null =
+      null;
+
+    let countryHighlight:
+      THREE.LineSegments |
+      null =
+      null;
+
+    let hoveredCountryName:
+      string |
+      null =
+      null;
+
+    const countryBoundaryController =
+      new AbortController();
+
+    fetch(
+      '/data/portfolio/world-countries.geojson',
+      {
+        signal:
+          countryBoundaryController.signal,
+      },
+    )
+      .then(
+        (
+          response,
+        ) => {
+
+          if (
+            !response.ok
+          ) {
+
+            throw new Error(
+              `Homepage country geography failed to load: ${response.status}`,
+            );
+          }
+
+          return response.json();
+        },
+      )
+      .then(
+        (
+          world,
+        ) => {
+
+          if (
+            countryBoundaryController
+              .signal
+              .aborted
+          ) {
+            return;
+          }
+
+          countryWorld =
+            world;
+
+          countryBoundaries =
+            createCountryBoundaryLayer(
+              world,
+            );
+
+          presentationGroup.add(
+            countryBoundaries,
+          );
+
+          renderScene();
+        },
+      )
+      .catch(
+        (
+          error:
+            unknown,
+        ) => {
+
+          if (
+            countryBoundaryController
+              .signal
+              .aborted
+          ) {
+            return;
+          }
+
+          console.error(
+            'Homepage country geography failed to load.',
+            error,
+          );
+        },
+      );
+
+    const countryRaycaster =
+      new THREE.Raycaster();
+
+    const countryPointer =
+      new THREE.Vector2();
+
+    const countryTooltip =
+      document.createElement(
+        'div',
+      );
+
+    countryTooltip.setAttribute(
+      'aria-hidden',
+      'true',
+    );
+
+    countryTooltip.style.position =
+      'fixed';
+
+    countryTooltip.style.zIndex =
+      '9999';
+
+    countryTooltip.style.pointerEvents =
+      'none';
+
+    countryTooltip.style.display =
+      'none';
+
+    countryTooltip.style.padding =
+      '4px 7px';
+
+    countryTooltip.style.borderRadius =
+      '4px';
+
+    countryTooltip.style.background =
+      'rgba(10, 16, 20, 0.78)';
+
+    countryTooltip.style.border =
+      '1px solid rgba(255,255,255,0.10)';
+
+    countryTooltip.style.color =
+      'rgba(255,255,255,0.90)';
+
+    countryTooltip.style.fontSize =
+      '10px';
+
+    countryTooltip.style.fontWeight =
+      '600';
+
+    countryTooltip.style.letterSpacing =
+      '0.08em';
+
+    countryTooltip.style.textTransform =
+      'uppercase';
+
+    countryTooltip.style.whiteSpace =
+      'nowrap';
+
+    countryTooltip.style.boxShadow =
+      '0 4px 12px rgba(0,0,0,0.14)';
+
+    countryTooltip.style.backdropFilter =
+      'blur(4px)';
+
+    document.body.appendChild(
+      countryTooltip,
+    );
+
     const cityAnchors =
       createCityAnchors(
         CALIBRATION_CITIES,
@@ -1679,6 +1863,230 @@ export default function HeroGlobe({
       renderScene();
     }
 
+    function clearCountryHover() {
+
+      hoveredCountryName =
+        null;
+
+      countryTooltip.style.display =
+        'none';
+
+      if (
+        countryHighlight
+      ) {
+
+        presentationGroup.remove(
+          countryHighlight,
+        );
+
+        disposeCountryBoundaryLayer(
+          countryHighlight,
+        );
+
+        countryHighlight =
+          null;
+
+        renderScene();
+      }
+    }
+
+
+    function updateCountryHover(
+      event:
+        PointerEvent,
+    ) {
+
+      if (
+        !countryWorld ||
+        isDragging
+      ) {
+
+        clearCountryHover();
+
+        return;
+      }
+
+      const bounds =
+        renderer.domElement
+          .getBoundingClientRect();
+
+      if (
+        bounds.width <= 0 ||
+        bounds.height <= 0
+      ) {
+
+        clearCountryHover();
+
+        return;
+      }
+
+      countryPointer.set(
+        (
+          (
+            event.clientX -
+            bounds.left
+          ) /
+          bounds.width
+        ) *
+          2 -
+          1,
+
+        -(
+          (
+            event.clientY -
+            bounds.top
+          ) /
+          bounds.height
+        ) *
+          2 +
+          1,
+      );
+
+      countryRaycaster.setFromCamera(
+        countryPointer,
+        camera,
+      );
+
+      const intersections =
+        countryRaycaster.intersectObject(
+          earthMesh,
+          false,
+        );
+
+      const intersection =
+        intersections[0];
+
+      if (!intersection) {
+
+        clearCountryHover();
+
+        return;
+      }
+
+      const localPoint =
+        earthMesh.worldToLocal(
+          intersection.point.clone(),
+        )
+          .normalize();
+
+      const latitude =
+        THREE.MathUtils.radToDeg(
+          Math.asin(
+            THREE.MathUtils.clamp(
+              localPoint.y,
+              -1,
+              1,
+            ),
+          ),
+        );
+
+      const longitude =
+        THREE.MathUtils.radToDeg(
+          Math.atan2(
+            -localPoint.z,
+            localPoint.x,
+          ),
+        );
+
+      const country =
+        findCountryAtCoordinate(
+          countryWorld,
+          longitude,
+          latitude,
+        );
+
+      if (!country) {
+
+        clearCountryHover();
+
+        return;
+      }
+
+      const tooltipLeft =
+        Math.min(
+          event.clientX +
+            14,
+          Math.max(
+            8,
+            window.innerWidth -
+              150,
+          ),
+        );
+
+      const tooltipTop =
+        Math.min(
+          event.clientY +
+            14,
+          Math.max(
+            8,
+            window.innerHeight -
+              40,
+          ),
+        );
+
+      countryTooltip.textContent =
+        country.name;
+
+      countryTooltip.style.left =
+        `${tooltipLeft}px`;
+
+      countryTooltip.style.top =
+        `${tooltipTop}px`;
+
+      countryTooltip.style.display =
+        'block';
+
+      if (
+        hoveredCountryName ===
+        country.name
+      ) {
+        return;
+      }
+
+      if (
+        countryHighlight
+      ) {
+
+        presentationGroup.remove(
+          countryHighlight,
+        );
+
+        disposeCountryBoundaryLayer(
+          countryHighlight,
+        );
+
+        countryHighlight =
+          null;
+      }
+
+      countryHighlight =
+        createCountryHighlightLayer(
+          country.geometry,
+        );
+
+      presentationGroup.add(
+        countryHighlight,
+      );
+
+      hoveredCountryName =
+        country.name;
+
+      renderScene();
+    }
+
+
+    function handlePointerLeave() {
+
+      clearCountryHover();
+
+      if (!isDragging) {
+
+        renderer.domElement.style.cursor =
+          'default';
+      }
+    }
+
+
     function handlePointerDown(
       event: PointerEvent,
     ) {
@@ -1693,6 +2101,8 @@ export default function HeroGlobe({
       }
 
       beginManualInteraction();
+
+      clearCountryHover();
 
       isDragging =
         true;
@@ -1723,14 +2133,28 @@ export default function HeroGlobe({
         event.pointerId !==
           activePointerId
       ) {
-        renderer.domElement.style.cursor =
+        const insideGlobe =
           isPointInsideCircle(
             mount,
             event.clientX,
             event.clientY,
-          )
+          );
+
+        renderer.domElement.style.cursor =
+          insideGlobe
             ? 'grab'
             : 'default';
+
+        if (insideGlobe) {
+
+          updateCountryHover(
+            event,
+          );
+
+        } else {
+
+          clearCountryHover();
+        }
 
         return;
       }
@@ -1812,6 +2236,8 @@ export default function HeroGlobe({
 
       event.preventDefault();
 
+      clearCountryHover();
+
       beginManualInteraction();
 
       yawOffset -=
@@ -1835,6 +2261,8 @@ export default function HeroGlobe({
         return;
       }
 
+      clearCountryHover();
+
       returnToDefault();
     }
 
@@ -1848,6 +2276,12 @@ export default function HeroGlobe({
       .addEventListener(
         'pointermove',
         handlePointerMove,
+      );
+
+    renderer.domElement
+      .addEventListener(
+        'pointerleave',
+        handlePointerLeave,
       );
 
     renderer.domElement
@@ -2005,6 +2439,12 @@ export default function HeroGlobe({
 
       renderer.domElement
         .removeEventListener(
+          'pointerleave',
+          handlePointerLeave,
+        );
+
+      renderer.domElement
+        .removeEventListener(
           'pointerup',
           finishPointerInteraction,
         );
@@ -2026,6 +2466,55 @@ export default function HeroGlobe({
           'dblclick',
           handleDoubleClick,
         );
+
+      countryBoundaryController.abort();
+
+      if (
+        countryHighlight
+      ) {
+
+        presentationGroup.remove(
+          countryHighlight,
+        );
+
+        disposeCountryBoundaryLayer(
+          countryHighlight,
+        );
+
+        countryHighlight =
+          null;
+      }
+
+      countryWorld =
+        null;
+
+      hoveredCountryName =
+        null;
+
+      if (
+        countryTooltip.parentElement
+      ) {
+
+        countryTooltip.parentElement.removeChild(
+          countryTooltip,
+        );
+      }
+
+      if (
+        countryBoundaries
+      ) {
+
+        presentationGroup.remove(
+          countryBoundaries,
+        );
+
+        disposeCountryBoundaryLayer(
+          countryBoundaries,
+        );
+
+        countryBoundaries =
+          null;
+      }
 
       cityAnchors.forEach(
         (
