@@ -30,17 +30,6 @@ import { roleOfGisMedia } from
 import { arcgisProTool } from
   '@/content/tools/arcgis-pro/tool';
 
-import { tutuilaTerrainStudyProject } from
-  '@/content/projects/tutuila-terrain-study/project';
-
-import { arcticAntarcticSeaIceProject } from
-  '@/content/projects/arctic-antarctic-sea-ice-extent/project';
-
-import { orphanedOilGasWellsProject } from
-  '@/content/projects/orphaned-oil-gas-wells-density/project';
-
-import { usPublicLibrariesAreaProject } from
-  '@/content/projects/us-public-libraries-area-2019/project';
 
 import type {
   ArticleContent,
@@ -49,12 +38,17 @@ import type {
 } from './types';
 
 const sourceRecords: readonly ContentRecord[] = [
+
   arcgisProTool,
 
-  tutuilaTerrainStudyProject,
-  arcticAntarcticSeaIceProject,
-  orphanedOilGasWellsProject,
-  usPublicLibrariesAreaProject,
+
+  ...(
+    import.meta.env.DEV
+      ? [
+        ]
+      : []
+  ),
+
 
   aGrainOfLoveMedia,
   nacisPresentationMedia,

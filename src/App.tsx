@@ -50,8 +50,13 @@ import ArticlePreview from
 import BlogDetailPage from
   '@/pages/blogs/BlogDetailPage';
 
+import ProjectPage from
+  '@/pages/projects/ProjectPage';
+
+
 const queryClient =
   new QueryClient();
+
 
 function Router() {
   return (
@@ -68,6 +73,11 @@ function Router() {
           <Route
             path="/about"
             component={About}
+          />
+
+          <Route
+            path="/portfolio/:slug"
+            component={ProjectPage}
           />
 
           <Route
@@ -124,6 +134,7 @@ function Router() {
   );
 }
 
+
 function App() {
   return (
     <QueryClientProvider
@@ -131,12 +142,7 @@ function App() {
     >
       <ThemeProvider>
         <TooltipProvider>
-          <WouterRouter
-            base={import.meta.env.BASE_URL.replace(
-              /\/$/,
-              '',
-            )}
-          >
+          <WouterRouter>
             <Router />
           </WouterRouter>
 
@@ -146,5 +152,6 @@ function App() {
     </QueryClientProvider>
   );
 }
+
 
 export default App;

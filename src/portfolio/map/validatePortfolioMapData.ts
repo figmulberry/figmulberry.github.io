@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   ProjectContent,
 } from '@/content/engine/types';
 
@@ -355,10 +355,37 @@ export const validatePortfolioMapData =
           [];
 
 
+        /*
+         * =====================================================
+         * SEMANTIC MAP PLACEMENT CONTRACT
+         * =====================================================
+         *
+         * mapPlacements is the authoritative geography used by
+         * the semantic portfolio map.
+         *
+         * The older locations array remains only for migration
+         * compatibility and must not silently drive map behavior.
+         *
+         * A project with neither representation is valid and is
+         * simply not displayed on the map.
+         * =====================================================
+         */
+
+
         if (
           placements.length ===
             0 &&
-          project.locations.length ===
+          project.locations.length >
+            0
+        ) {
+          throw new Error(
+            `Portfolio map validation: project "${project.slug}" contains legacy locations but has no semantic mapPlacements.`,
+          );
+        }
+
+
+        if (
+          placements.length ===
             0
         ) {
           return;

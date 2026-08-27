@@ -1,4 +1,4 @@
-﻿import React, {
+import React, {
   useCallback,
   useEffect,
   useMemo,
@@ -279,6 +279,139 @@ type SelectedProject = {
   latitude:
     number;
 };
+
+
+/*
+ * =======================================================
+ * PORTFOLIO MAP BROWSER-HISTORY STATE
+ * =======================================================
+ *
+ * This state belongs to the /portfolio history entry.
+ *
+ * Before navigating from a selected map project to its
+ * detail page, the current camera and selected project are
+ * written into window.history.state.
+ *
+ * Browser Back can therefore remount PortfolioMap at the
+ * exact discovery state the visitor left.
+ * =======================================================
+ */
+
+type PortfolioMapHistoryState = {
+  restoreVersion:
+    1;
+
+  center: [
+    number,
+    number,
+  ];
+
+  zoom:
+    number;
+
+  projectionMode:
+    ProjectionMode;
+
+  selectedProject:
+    SelectedProject |
+    null;
+};
+
+
+function readPortfolioMapHistoryState():
+  PortfolioMapHistoryState |
+  null {
+  if (
+    typeof window ===
+    'undefined'
+  ) {
+    return null;
+  }
+
+
+  const historyState:
+    unknown =
+    window.history.state;
+
+
+  if (
+    !historyState ||
+    typeof historyState !==
+      'object'
+  ) {
+    return null;
+  }
+
+
+  const candidate =
+    (
+      historyState as {
+        portfolioMapState?:
+          unknown;
+      }
+    ).portfolioMapState;
+
+
+  if (
+    !candidate ||
+    typeof candidate !==
+      'object'
+  ) {
+    return null;
+  }
+
+
+  const value =
+    candidate as Partial<
+      PortfolioMapHistoryState
+    >;
+
+
+  if (
+    value.restoreVersion !==
+      1 ||
+    !Array.isArray(
+      value.center,
+    ) ||
+    value.center.length !==
+      2 ||
+    typeof value.center[0] !==
+      'number' ||
+    typeof value.center[1] !==
+      'number' ||
+    typeof value.zoom !==
+      'number' ||
+    (
+      value.projectionMode !==
+        'map' &&
+      value.projectionMode !==
+        'globe'
+    )
+  ) {
+    return null;
+  }
+
+
+  return {
+    restoreVersion:
+      1,
+
+    center: [
+      value.center[0],
+      value.center[1],
+    ],
+
+    zoom:
+      value.zoom,
+
+    projectionMode:
+      value.projectionMode,
+
+    selectedProject:
+      value.selectedProject ??
+      null,
+  };
+}
 
 
 type DragState = {
@@ -604,6 +737,18 @@ export default function PortfolioMap() {
     );
 
 
+  /*
+   * A pointer drag can still be followed by a browser
+   * click event. This ref prevents a completed pan from
+   * being mistaken for an intentional empty-map click.
+   */
+
+  const suppressMapClickRef =
+    useRef(
+      false,
+    );
+
+
   const cameraFrameRef =
     useRef<
       number |
@@ -680,12 +825,92 @@ export default function PortfolioMap() {
     );
 
 
+  /*
+   * Read once for this mount.
+   *
+   * On an ordinary first visit there is no saved state and
+   * the normal defaults are used.
+   *
+   * After Browser Back from a project page, this contains
+   * the exact map state that was active before navigation.
+   */
+
+  const initialHistoryState =
+    useMemo(
+      () =>
+        readPortfolioMapHistoryState(),
+      [],
+    );
+
+
+  /*
+   * Browser-Back restoration is intentionally one-shot.
+   *
+   * The map initializes from the saved entry first. Once
+   * mounted, remove that saved payload from the current
+   * history entry so a later refresh/direct revisit does
+   * not reopen the project automatically.
+   */
+
+  useEffect(
+    () => {
+      if (
+        !initialHistoryState ||
+        typeof window ===
+          'undefined'
+      ) {
+        return;
+      }
+
+
+      const current =
+        window.history.state;
+
+
+      if (
+        !current ||
+        typeof current !==
+          'object' ||
+        Array.isArray(
+          current,
+        )
+      ) {
+        return;
+      }
+
+
+      const {
+        portfolioMapState:
+          _portfolioMapState,
+
+        ...remainingHistoryState
+      } =
+        current as Record<
+          string,
+          unknown
+        >;
+
+
+      window.history.replaceState(
+        remainingHistoryState,
+        '',
+        window.location.href,
+      );
+    },
+    [
+      initialHistoryState,
+    ],
+  );
+
+
   const [
     projectionMode,
     setProjectionMode,
   ] =
     useState<ProjectionMode>(
-      'map',
+      initialHistoryState
+        ?.projectionMode ??
+        'map',
     );
 
 
@@ -699,7 +924,9 @@ export default function PortfolioMap() {
         number,
       ]
     >(
-      DEFAULT_CENTER,
+      initialHistoryState
+        ?.center ??
+        DEFAULT_CENTER,
     );
 
 
@@ -708,7 +935,9 @@ export default function PortfolioMap() {
     setZoom,
   ] =
     useState(
-      DEFAULT_ZOOM,
+      initialHistoryState
+        ?.zoom ??
+        DEFAULT_ZOOM,
     );
 
 
@@ -747,7 +976,9 @@ export default function PortfolioMap() {
     setSelectedProject,
   ] =
     useState<SelectedProject | null>(
-      null,
+      initialHistoryState
+        ?.selectedProject ??
+        null,
     );
 
 
@@ -2627,6 +2858,79 @@ export default function PortfolioMap() {
 
   /*
    * =====================================================
+   * BROWSER-BACK MAP RESTORATION
+   * =====================================================
+   *
+   * replaceState modifies the CURRENT /portfolio history
+   * entry. The subsequent Link navigation then pushes the
+   * project detail entry on top of it.
+   *
+   * Browser Back therefore reveals this preserved map
+   * entry instead of reconstructing the world defaults.
+   */
+
+
+  const persistPortfolioMapHistoryState =
+    useCallback(
+      () => {
+        if (
+          typeof window ===
+          'undefined'
+        ) {
+          return;
+        }
+
+
+        const currentHistoryState =
+          window.history.state;
+
+
+        const baseHistoryState =
+          currentHistoryState &&
+          typeof currentHistoryState ===
+            'object' &&
+          !Array.isArray(
+            currentHistoryState,
+          )
+            ? currentHistoryState
+            : {};
+
+
+        window.history.replaceState(
+          {
+            ...baseHistoryState,
+
+            portfolioMapState: {
+              restoreVersion:
+                1,
+
+              center: [
+                center[0],
+                center[1],
+              ],
+
+              zoom,
+
+              projectionMode,
+
+              selectedProject,
+            } satisfies PortfolioMapHistoryState,
+          },
+          '',
+          window.location.href,
+        );
+      },
+      [
+        center,
+        projectionMode,
+        selectedProject,
+        zoom,
+      ],
+    );
+
+
+  /*
+   * =====================================================
    * CONTROLS
    * =====================================================
    */
@@ -2653,6 +2957,11 @@ export default function PortfolioMap() {
         setSelectedProject(
           null,
         );
+
+
+        setExpandedClusterKey(
+          null,
+        );
       },
       [],
     );
@@ -2661,6 +2970,11 @@ export default function PortfolioMap() {
   const zoomIn =
     useCallback(
       () => {
+        setExpandedClusterKey(
+          null,
+        );
+
+
         setZoom(
           (
             current,
@@ -2680,6 +2994,11 @@ export default function PortfolioMap() {
   const zoomOut =
     useCallback(
       () => {
+        setExpandedClusterKey(
+          null,
+        );
+
+
         setZoom(
           (
             current,
@@ -2733,6 +3052,11 @@ export default function PortfolioMap() {
 
 
         setSelectedProject(
+          null,
+        );
+
+
+        setExpandedClusterKey(
           null,
         );
 
@@ -3099,6 +3423,65 @@ export default function PortfolioMap() {
     );
 
 
+  /*
+   * =====================================================
+   * KEYBOARD DISMISSAL
+   * =====================================================
+   *
+   * The project preview is intentionally non-modal.
+   * Escape clears transient map inspection state without
+   * trapping focus or interfering with normal navigation.
+   */
+
+
+  useEffect(
+    () => {
+      const handleKeyDown =
+        (
+          event:
+            KeyboardEvent,
+        ) => {
+          if (
+            event.key !==
+            'Escape'
+          ) {
+            return;
+          }
+
+
+          setSelectedProject(
+            null,
+          );
+
+
+          setExpandedClusterKey(
+            null,
+          );
+
+
+          setHoveredCountry(
+            null,
+          );
+        };
+
+
+      window.addEventListener(
+        'keydown',
+        handleKeyDown,
+      );
+
+
+      return () => {
+        window.removeEventListener(
+          'keydown',
+          handleKeyDown,
+        );
+      };
+    },
+    [],
+  );
+
+
   const enterFullscreen =
     useCallback(
       async () => {
@@ -3151,6 +3534,27 @@ export default function PortfolioMap() {
         ) {
           return;
         }
+
+
+        /*
+         * Begin every new pointer gesture as a potential
+         * click. Meaningful movement below converts it
+         * into a drag.
+         */
+
+        suppressMapClickRef.current =
+          false;
+
+
+        /*
+         * Spiderfied clusters are local inspection states.
+         * Beginning a new pan returns the map to its normal
+         * geographic presentation.
+         */
+
+        setExpandedClusterKey(
+          null,
+        );
 
 
         event
@@ -3214,6 +3618,26 @@ export default function PortfolioMap() {
         const deltaY =
           event.clientY -
           drag.startY;
+
+
+        /*
+         * Ignore tiny pointer jitter so an ordinary click
+         * still dismisses overlays normally.
+         *
+         * Once movement passes five CSS pixels, this
+         * gesture is considered a pan rather than a click.
+         */
+
+        if (
+          Math.hypot(
+            deltaX,
+            deltaY,
+          ) >=
+          5
+        ) {
+          suppressMapClickRef.current =
+            true;
+        }
 
 
         const longitudePerPixel =
@@ -3303,6 +3727,11 @@ export default function PortfolioMap() {
         ) {
           return;
         }
+
+
+        setExpandedClusterKey(
+          null,
+        );
 
 
         const factor =
@@ -4204,7 +4633,223 @@ export default function PortfolioMap() {
 
   /*
    * =====================================================
+   * SELECTED PROJECT CONTENT
+   * =====================================================
+   *
+   * Geographic markers intentionally carry only the small
+   * map-specific ProjectMarkerProperties payload.
+   *
+   * The richer showcase resolves that marker back to the
+   * canonical ProjectContent record already loaded by the
+   * portfolio content engine.
+   * =====================================================
+   */
+
+
+  const selectedProjectContent =
+    useMemo(
+      () => {
+        if (
+          !selectedProject
+        ) {
+          return null;
+        }
+
+
+        return (
+          mappedPortfolioProjects.find(
+            (
+              project,
+            ) =>
+              project.id ===
+              selectedProject
+                .properties
+                .projectId,
+          ) ??
+          mappedPortfolioProjects.find(
+            (
+              project,
+            ) =>
+              project.slug ===
+              selectedProject
+                .properties
+                .slug,
+          ) ??
+          null
+        );
+      },
+      [
+        mappedPortfolioProjects,
+        selectedProject,
+      ],
+    );
+
+
+  const selectedProjectImage =
+    selectedProjectContent
+      ?.hero ??
+    selectedProjectContent
+      ?.banner ??
+    selectedProjectContent
+      ?.thumbnail;
+
+
+  const selectedProjectDisplayDate =
+    useMemo(
+      () => {
+        if (
+          !selectedProjectContent
+        ) {
+          return null;
+        }
+
+
+        const value =
+          selectedProjectContent
+            .dateCompleted ??
+          selectedProjectContent
+            .dateStarted ??
+          selectedProjectContent
+            .publishedAt;
+
+
+        const date =
+          new Date(
+            value,
+          );
+
+
+        if (
+          Number.isNaN(
+            date.getTime(),
+          )
+        ) {
+          return null;
+        }
+
+
+        return new Intl.DateTimeFormat(
+          'en-US',
+          {
+            month:
+              'short',
+
+            year:
+              'numeric',
+          },
+        ).format(
+          date,
+        );
+      },
+      [
+        selectedProjectContent,
+      ],
+    );
+
+
+  /*
+   * Prefer the editorial reading-time value already stored
+   * with the case study.
+   *
+   * Older projects without that value receive a restrained
+   * text-length estimate rather than a fabricated constant.
+   */
+
+  const selectedProjectReadMinutes =
+    useMemo(
+      () => {
+        if (
+          !selectedProjectContent
+        ) {
+          return null;
+        }
+
+
+        const explicitMinutes =
+          selectedProjectContent
+            .caseStudy
+            ?.readingMinutes;
+
+
+        if (
+          typeof explicitMinutes ===
+            'number' &&
+          Number.isFinite(
+            explicitMinutes,
+          ) &&
+          explicitMinutes >
+            0
+        ) {
+          return Math.max(
+            1,
+            Math.round(
+              explicitMinutes,
+            ),
+          );
+        }
+
+
+        const estimateText = [
+          selectedProjectContent
+            .description,
+
+          selectedProjectContent
+            .caseStudy
+            ?.introduction ??
+            '',
+        ]
+          .join(
+            ' ',
+          )
+          .trim();
+
+
+        if (
+          !estimateText
+        ) {
+          return null;
+        }
+
+
+        const wordCount =
+          estimateText
+            .split(
+              /\s+/,
+            )
+            .filter(
+              Boolean,
+            )
+            .length;
+
+
+        return Math.max(
+          1,
+          Math.ceil(
+            wordCount /
+            220,
+          ),
+        );
+      },
+      [
+        selectedProjectContent,
+      ],
+    );
+
+
+  /*
+   * =====================================================
    * SELECTED PROJECT POPUP POSITION
+   * =====================================================
+   *
+   * Desktop:
+   * - Keep the preview attached to the selected marker.
+   * - Prefer the right side.
+   * - Flip left near the right viewport edge.
+   * - Prefer below.
+   * - Flip above near the bottom viewport edge.
+   *
+   * Compact viewport:
+   * - Present the preview as a viewport-safe bottom card.
    * =====================================================
    */
 
@@ -4251,17 +4896,22 @@ export default function PortfolioMap() {
         }
 
 
+        const compact =
+          width <
+          640;
+
+
         const popupWidth =
-          224;
+          320;
 
         const popupHeight =
-          164;
+          236;
 
         const edgePadding =
-          18;
+          16;
 
         const markerGap =
-          16;
+          18;
 
 
         const horizontal =
@@ -4294,6 +4944,8 @@ export default function PortfolioMap() {
           horizontal,
 
           vertical,
+
+          compact,
         } as const;
       },
       [
@@ -4746,7 +5398,34 @@ export default function PortfolioMap() {
                     finishDrag
                   }
                   onClick={() => {
+                    /*
+                     * Browsers may dispatch click after a
+                     * pointer drag. Do not interpret that
+                     * synthetic post-drag click as an
+                     * intentional map-background click.
+                     */
+
+                    if (
+                      suppressMapClickRef
+                        .current
+                    ) {
+                      suppressMapClickRef.current =
+                        false;
+
+                      return;
+                    }
+
+
+                    /*
+                     * A genuine empty-map click dismisses
+                     * transient project-map overlays.
+                     */
+
                     setSelectedProject(
+                      null,
+                    );
+
+                    setExpandedClusterKey(
                       null,
                     );
                   }}
@@ -5151,6 +5830,13 @@ export default function PortfolioMap() {
                                           .coordinates;
 
 
+                                      const isSelected =
+                                        selectedProject
+                                          ?.properties
+                                          .markerId ===
+                                        project.markerId;
+
+
                                       const spiderMarker:
                                         RenderedMarker =
                                         {
@@ -5221,9 +5907,18 @@ export default function PortfolioMap() {
 
                                           <button
                                             type="button"
-                                            aria-label={`Open ${project.title}`}
+                                            aria-label={
+                                              isSelected
+                                                ? `${project.title} selected`
+                                                : `Open ${project.title}`
+                                            }
+                                            aria-pressed={
+                                              isSelected
+                                            }
                                             title={
-                                              project.title
+                                              isSelected
+                                                ? `${project.title} - selected`
+                                                : project.title
                                             }
                                             className={[
                                               'group',
@@ -5273,12 +5968,24 @@ export default function PortfolioMap() {
                                                 'h-7',
                                                 'w-7',
                                                 'rounded-full',
-                                                'bg-[#ff5a52]/15',
-                                                'opacity-0',
                                                 'transition-all',
                                                 'duration-150',
-                                                'group-hover:opacity-100',
-                                                'group-focus-visible:opacity-100',
+                                                isSelected
+                                                  ? [
+                                                      'h-8',
+                                                      'w-8',
+                                                      'border',
+                                                      'border-[#ff5a52]/70',
+                                                      'bg-[#ff5a52]/20',
+                                                      'opacity-100',
+                                                      'shadow-[0_0_0_4px_rgba(255,90,82,0.10)]',
+                                                    ].join(' ')
+                                                  : [
+                                                      'bg-[#ff5a52]/15',
+                                                      'opacity-0',
+                                                      'group-hover:opacity-100',
+                                                      'group-focus-visible:opacity-100',
+                                                    ].join(' '),
                                               ].join(' ')}
                                             />
 
@@ -5293,13 +6000,21 @@ export default function PortfolioMap() {
                                                 'w-3.5',
                                                 'rounded-full',
                                                 'border',
-                                                'border-white/70',
                                                 'bg-[#ff5a52]',
                                                 'shadow-lg',
-                                                'transition-transform',
+                                                'transition-all',
                                                 'duration-150',
-                                                'group-hover:scale-125',
-                                                'group-focus-visible:scale-125',
+                                                isSelected
+                                                  ? [
+                                                      'scale-125',
+                                                      'border-white',
+                                                      'shadow-[0_0_14px_rgba(255,90,82,0.70)]',
+                                                    ].join(' ')
+                                                  : [
+                                                      'border-white/70',
+                                                      'group-hover:scale-125',
+                                                      'group-focus-visible:scale-125',
+                                                    ].join(' '),
                                               ].join(' ')}
                                             />
                                           </button>
@@ -5505,15 +6220,31 @@ export default function PortfolioMap() {
                         }
 
 
+                        const isSelected =
+                          selectedProject
+                            ?.properties
+                            .markerId ===
+                          project.markerId;
+
+
                         return (
                           <button
                             key={
                               marker.key
                             }
                             type="button"
-                            aria-label={`Open ${project.title}`}
+                            aria-label={
+                              isSelected
+                                ? `${project.title} selected`
+                                : `Open ${project.title}`
+                            }
+                            aria-pressed={
+                              isSelected
+                            }
                             title={
-                              project.title
+                              isSelected
+                                ? `${project.title} - selected`
+                                : project.title
                             }
                             className={[
                               'group',
@@ -5561,15 +6292,27 @@ export default function PortfolioMap() {
                               className={[
                                 'pointer-events-none',
                                 'absolute',
-                                'h-6',
-                                'w-6',
                                 'rounded-full',
-                                'bg-[#ff5a52]/15',
-                                'opacity-0',
                                 'transition-all',
                                 'duration-150',
-                                'group-hover:opacity-100',
-                                'group-focus-visible:opacity-100',
+                                isSelected
+                                  ? [
+                                      'h-8',
+                                      'w-8',
+                                      'border',
+                                      'border-[#ff5a52]/70',
+                                      'bg-[#ff5a52]/20',
+                                      'opacity-100',
+                                      'shadow-[0_0_0_4px_rgba(255,90,82,0.10)]',
+                                    ].join(' ')
+                                  : [
+                                      'h-6',
+                                      'w-6',
+                                      'bg-[#ff5a52]/15',
+                                      'opacity-0',
+                                      'group-hover:opacity-100',
+                                      'group-focus-visible:opacity-100',
+                                    ].join(' '),
                               ].join(' ')}
                             />
 
@@ -5586,10 +6329,21 @@ export default function PortfolioMap() {
                                 'rounded-full',
                                 'bg-[#ff5a52]',
                                 'shadow-lg',
-                                'transition-transform',
+                                'transition-all',
                                 'duration-150',
-                                'group-hover:scale-125',
-                                'group-focus-visible:scale-125',
+                                isSelected
+                                  ? [
+                                      'scale-125',
+                                      'ring-2',
+                                      'ring-white/90',
+                                      'ring-offset-2',
+                                      'ring-offset-[#17212a]',
+                                      'shadow-[0_0_14px_rgba(255,90,82,0.70)]',
+                                    ].join(' ')
+                                  : [
+                                      'group-hover:scale-125',
+                                      'group-focus-visible:scale-125',
+                                    ].join(' '),
                               ].join(' ')}
                             />
                           </button>
@@ -5606,53 +6360,48 @@ export default function PortfolioMap() {
 
       {/* ================================================
           PROJECT POPUP
+
+          Compact editorial project preview.
+
+          Presentation is intentionally isolated from map
+          behavior. The image is a direct flex child so it
+          can stretch with the information panel without an
+          intermediate wrapper, frame, grid gap or inset.
          ================================================ */}
 
       {
         selectedProject &&
         selectedProjectPosition &&
+        selectedProjectContent &&
         !isProjectionTransitioning
           ? (
-              <div
+              <article
                 role="dialog"
-                aria-label={`${selectedProject.properties.title} project preview`}
+                aria-modal="false"
+                aria-label={`${selectedProjectContent.title} project preview`}
                 className={[
                   'pointer-events-auto',
                   'absolute',
                   'z-40',
-                  'w-[14rem]',
                   'overflow-hidden',
-                  'rounded-lg',
-                  'border',
-                  'border-white/[0.09]',
-                  'bg-[#17212a]/95',
-                  'text-white',
-                  'shadow-xl',
-                  'backdrop-blur-md',
+                  'bg-[#f2efe8]',
+                  'shadow-[0_18px_40px_-18px_rgba(0,0,0,0.55)]',
+
+                  selectedProjectPosition
+                    .compact
+                    ? [
+                        'bottom-3',
+                        'left-3',
+                        'right-3',
+                      ].join(' ')
+                    : [
+                        'bottom-7',
+                        'left-1/2',
+                        'w-[360px]',
+                        'max-w-[calc(100%-2rem)]',
+                        '-translate-x-1/2',
+                      ].join(' '),
                 ].join(' ')}
-                style={{
-                  left:
-                    selectedProjectPosition
-                      .x,
-
-                  top:
-                    selectedProjectPosition
-                      .y,
-
-                  transform: [
-                    selectedProjectPosition
-                      .horizontal ===
-                    'left'
-                      ? 'translateX(calc(-100% - 16px))'
-                      : 'translateX(16px)',
-
-                    selectedProjectPosition
-                      .vertical ===
-                    'above'
-                      ? 'translateY(calc(-100% - 16px))'
-                      : 'translateY(16px)',
-                  ].join(' '),
-                }}
                 onClick={(
                   event,
                 ) => {
@@ -5660,204 +6409,330 @@ export default function PortfolioMap() {
                 }}
               >
                 <div
-                  aria-hidden="true"
-                  className="h-[2px] w-full bg-[#ff5a52]"
-                />
-
-
-                <div
                   className={[
-                    'px-3.5',
-                    'pb-3.5',
-                    'pt-3',
+                    'flex',
+
+                    selectedProjectPosition
+                      .compact
+                      ? 'flex-col'
+                      : [
+                          'flex-row',
+                          'items-stretch',
+                        ].join(' '),
                   ].join(' ')}
                 >
+                  {/* ======================================
+                      DIRECT FULL-BLEED PROJECT IMAGE
+
+                      Deliberately no wrapper element.
+                     ====================================== */}
+
+                  {
+                    selectedProjectImage
+                      ? (
+                          <img
+                            src={
+                              selectedProjectImage
+                                .src
+                            }
+                            alt={
+                              selectedProjectImage
+                                .decorative
+                                ? ''
+                                : selectedProjectImage
+                                    .alt
+                            }
+                            width={
+                              selectedProjectImage
+                                .width
+                            }
+                            height={
+                              selectedProjectImage
+                                .height
+                            }
+                            loading="lazy"
+                            className={[
+                              'block',
+                              'shrink-0',
+                              'self-stretch',
+                              'border-0',
+                              'outline-none',
+                              'object-cover',
+                              'object-center',
+
+                              selectedProjectPosition
+                                .compact
+                                ? [
+                                    'h-40',
+                                    'w-full',
+                                  ].join(' ')
+                                : [
+                                    'h-auto',
+                                    'w-[43%]',
+                                    'min-h-full',
+                                    'flex-none',
+                                  ].join(' '),
+                            ].join(' ')}
+                          />
+                        )
+                      : (
+                          <div
+                            className={[
+                              'flex',
+                              'shrink-0',
+                              'items-center',
+                              'justify-center',
+                              'self-stretch',
+                              'bg-[#202b34]',
+                              'text-center',
+                              'font-mono',
+                              'text-[0.55rem]',
+                              'uppercase',
+                              'tracking-[0.14em]',
+                              'text-white/40',
+
+                              selectedProjectPosition
+                                .compact
+                                ? [
+                                    'h-40',
+                                    'w-full',
+                                  ].join(' ')
+                                : [
+                                    'w-[43%]',
+                                    'min-h-[180px]',
+                                    'flex-none',
+                                  ].join(' '),
+                            ].join(' ')}
+                          >
+                            {
+                              selectedProjectContent
+                                .category
+                            }
+                          </div>
+                        )
+                  }
+
+
+                  {/* ======================================
+                      INFORMATION PANEL
+
+                      This is the only padded region.
+                     ====================================== */}
+
                   <div
                     className={[
                       'flex',
-                      'items-start',
-                      'justify-between',
-                      'gap-2',
+                      'min-w-0',
+                      'flex-1',
+                      'flex-col',
+                      'gap-3',
+                      'p-4',
+                      'text-[#253039]',
                     ].join(' ')}
                   >
+                    {/* Metadata + close */}
+
+                    <div
+                      className={[
+                        'flex',
+                        'items-start',
+                        'gap-2',
+                      ].join(' ')}
+                    >
+                      <p
+                        className={[
+                          'min-w-0',
+                          'flex-1',
+                          'font-mono',
+                          'text-[0.48rem]',
+                          'font-semibold',
+                          'uppercase',
+                          'tracking-[0.10em]',
+                          'text-[#253039]/50',
+                        ].join(' ')}
+                      >
+                        <span className="text-[#ff5a52]">
+                          {
+                            selectedProjectContent
+                              .category
+                          }
+                        </span>
+
+                        {
+                          selectedProjectDisplayDate
+                            ? (
+                                <>
+                                  {' · '}
+
+                                  {
+                                    selectedProjectDisplayDate
+                                  }
+                                </>
+                              )
+                            : null
+                        }
+
+                        {
+                          selectedProjectReadMinutes
+                            ? (
+                                <>
+                                  {' · '}
+
+                                  {
+                                    selectedProjectReadMinutes
+                                  } min read
+                                </>
+                              )
+                            : null
+                        }
+                      </p>
+
+
+                      <button
+                        type="button"
+                        aria-label="Close project preview"
+                        title="Close project preview"
+                        onClick={(
+                          event,
+                        ) => {
+                          event.stopPropagation();
+
+                          setSelectedProject(
+                            null,
+                          );
+                        }}
+                        className={[
+                          '-mt-0.5',
+                          'shrink-0',
+                          'text-base',
+                          'leading-none',
+                          'text-[#253039]/45',
+                          'transition-colors',
+                          'hover:text-[#253039]',
+                          'focus-visible:outline',
+                          'focus-visible:outline-2',
+                          'focus-visible:outline-offset-2',
+                          'focus-visible:outline-[#253039]',
+                        ].join(' ')}
+                      >
+                        ×
+                      </button>
+                    </div>
+
+
+                    {/* Title + location */}
+
+                    <div className="min-w-0">
+                      <h3
+                        className={[
+                          'line-clamp-3',
+                          'text-[0.98rem]',
+                          'font-medium',
+                          'leading-[1.08]',
+                          'tracking-[-0.02em]',
+                          'text-[#253039]',
+                        ].join(' ')}
+                      >
+                        {
+                          selectedProjectContent
+                            .title
+                        }
+                      </h3>
+
+
+                      <p
+                        className={[
+                          'mt-2',
+                          'font-mono',
+                          'text-[0.49rem]',
+                          'uppercase',
+                          'tracking-[0.09em]',
+                          'text-[#253039]/40',
+                        ].join(' ')}
+                      >
+                        {
+                          selectedProject
+                            .properties
+                            .locationLabel
+                        }
+                      </p>
+                    </div>
+
+
+                    {/* Description */}
+
                     <p
                       className={[
-                        'min-w-0',
-                        'pt-0.5',
-                        'font-mono',
-                        'text-[0.58rem]',
-                        'font-semibold',
-                        'uppercase',
-                        'tracking-[0.17em]',
-                        'text-[#ff5a52]',
+                        'line-clamp-2',
+                        'text-[0.61rem]',
+                        'leading-[1.45]',
+                        'text-[#253039]/60',
                       ].join(' ')}
                     >
                       {
-                        selectedProject
-                          .properties
-                          .category
+                        selectedProjectContent
+                          .description
                       }
                     </p>
 
 
-                    <button
-                      type="button"
-                      aria-label="Close project preview"
-                      title="Close project preview"
+                    {/* Explore */}
+
+                    <Link
+                      href={`/portfolio/${selectedProject.properties.slug}`}
                       onClick={(
                         event,
                       ) => {
                         event.stopPropagation();
 
-                        setSelectedProject(
-                          null,
-                        );
+                        persistPortfolioMapHistoryState();
                       }}
                       className={[
-                        '-mr-1',
-                        '-mt-1',
-                        'flex',
-                        'h-7',
-                        'w-7',
-                        'shrink-0',
+                        'group',
+                        'mt-auto',
+                        'inline-flex',
+                        'w-fit',
                         'items-center',
-                        'justify-center',
-                        'rounded-md',
-                        'text-white/40',
+                        'gap-1.5',
+                        'border-b',
+                        'border-[#253039]/30',
+                        'pb-0.5',
+                        'font-mono',
+                        'text-[0.53rem]',
+                        'font-bold',
+                        'uppercase',
+                        'tracking-[0.12em]',
+                        'text-[#253039]',
                         'transition-colors',
-                        'duration-150',
-                        'hover:bg-white/[0.07]',
-                        'hover:text-white',
-                        'focus-visible:outline-none',
-                        'focus-visible:ring-1',
-                        'focus-visible:ring-white/60',
+                        'hover:border-[#253039]',
+                        'hover:text-[#ff5a52]',
+                        'focus-visible:outline',
+                        'focus-visible:outline-2',
+                        'focus-visible:outline-offset-2',
+                        'focus-visible:outline-[#253039]',
                       ].join(' ')}
                     >
-                      <svg
+                      <span>
+                        Explore project
+                      </span>
+
+                      <span
                         aria-hidden="true"
-                        viewBox="0 0 20 20"
-                        className="h-3.5 w-3.5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                        strokeLinecap="round"
+                        className={[
+                          'transition-transform',
+                          'group-hover:translate-x-0.5',
+                        ].join(' ')}
                       >
-                        <path d="M5 5l10 10" />
-                        <path d="M15 5L5 15" />
-                      </svg>
-                    </button>
+                        →
+                      </span>
+                    </Link>
                   </div>
-
-
-                  <h3
-                    className={[
-                      'mt-1',
-                      'pr-1',
-                      'text-[0.82rem]',
-                      'font-semibold',
-                      'leading-[1.3rem]',
-                      'text-white/95',
-                    ].join(' ')}
-                  >
-                    {
-                      selectedProject
-                        .properties
-                        .title
-                    }
-                  </h3>
-
-
-                  <div
-                    className={[
-                      'mt-2',
-                      'flex',
-                      'items-center',
-                      'gap-1.5',
-                      'text-[0.68rem]',
-                      'leading-4',
-                      'text-white/45',
-                    ].join(' ')}
-                  >
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 20 20"
-                      className="h-3 w-3 shrink-0"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M10 17s5-4.5 5-9a5 5 0 1 0-10 0c0 4.5 5 9 5 9Z" />
-
-                      <circle
-                        cx="10"
-                        cy="8"
-                        r="1.7"
-                      />
-                    </svg>
-
-                    <span>
-                      {
-                        selectedProject
-                          .properties
-                          .locationLabel
-                      }
-                    </span>
-                  </div>
-
-
-                  <div
-                    aria-hidden="true"
-                    className="mt-3 h-px bg-white/[0.07]"
-                  />
-
-
-                  <Link
-                    href={`/portfolio/${selectedProject.properties.slug}`}
-                    onClick={(
-                      event,
-                    ) => {
-                      event.stopPropagation();
-                    }}
-                    className={[
-                      'mt-2.5',
-                      'inline-flex',
-                      'items-center',
-                      'gap-1.5',
-                      'text-[0.68rem]',
-                      'font-semibold',
-                      'text-[#ff5a52]',
-                      'transition-colors',
-                      'duration-150',
-                      'hover:text-[#ff746d]',
-                      'focus-visible:outline-none',
-                      'focus-visible:underline',
-                    ].join(' ')}
-                  >
-                    <span>
-                      View project
-                    </span>
-
-                    <svg
-                      aria-hidden="true"
-                      viewBox="0 0 16 16"
-                      className="h-3 w-3"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.6"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M3 8h9" />
-                      <path d="m9 4 4 4-4 4" />
-                    </svg>
-                  </Link>
                 </div>
-              </div>
+              </article>
             )
           : null
       }
+
     </div>
   );
 }

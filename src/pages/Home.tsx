@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/button';
 
 import {
-  portfolioProjects,
 } from '@/data/content';
 
 import {
@@ -31,7 +30,7 @@ import {
 
 import {
   getHomepageFeaturedProjects,
-} from '@/lib/content/getHomepageFeaturedProjects';
+} from '@/lib/content/getPublishedProjects';
 
 import BuiltWith from
   '@/built-with/BuiltWith';
@@ -116,7 +115,6 @@ function hasRealProjectThumbnail(
 export default function Home() {
   const featuredProjects =
     getHomepageFeaturedProjects(
-      portfolioProjects,
       3,
     );
 
@@ -142,7 +140,8 @@ export default function Home() {
 
       {/* Featured Projects */}
 
-      <section
+      {featuredProjects.length > 0 && (
+        <section
         className={[
           'w-full',
           'py-14',
@@ -249,7 +248,7 @@ export default function Home() {
 
                 const useRealThumbnail =
                   hasRealProjectThumbnail(
-                    project.thumbnail,
+                    project.thumbnail?.src,
                   );
 
                 return (
@@ -297,9 +296,10 @@ export default function Home() {
                       {useRealThumbnail ? (
                         <img
                           src={
-                            project.thumbnail
+                            project.thumbnail?.src
                           }
                           alt={
+                            project.thumbnail?.alt ??
                             `${project.title} project thumbnail`
                           }
                           width={800}
@@ -476,7 +476,7 @@ export default function Home() {
                         ].join(' ')}
                       >
                         {
-                          project.tools.map(
+                          project.tags.map(
                             (
                               tool,
                             ) => (
@@ -534,7 +534,8 @@ export default function Home() {
             )}
           </div>
         </div>
-      </section>
+        </section>
+      )}
 
       {/* Featured Articles */}
 
