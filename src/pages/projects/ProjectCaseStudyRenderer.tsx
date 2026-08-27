@@ -16,18 +16,82 @@ import {
 
 type ProjectCaseStudyRendererProps = {
   sections: ProjectCaseStudySection[];
+  repositoryUrl?: string;
 };
+
+function renderParagraphBody(
+  body: string,
+  repositoryUrl?: string,
+) {
+  if (
+    !repositoryUrl
+  ) {
+    return body;
+  }
+
+  const match =
+    /\brepository\b/i.exec(
+      body,
+    );
+
+  if (
+    !match
+  ) {
+    return body;
+  }
+
+  const start =
+    match.index;
+
+  const end =
+    start +
+    match[0].length;
+
+  return (
+    <>
+      {body.slice(
+        0,
+        start,
+      )}
+
+      <a
+        href={repositoryUrl}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="underline decoration-border underline-offset-4 transition-colors hover:text-accent"
+      >
+        {body.slice(
+          start,
+          end,
+        )}
+      </a>
+
+      {body.slice(
+        end,
+      )}
+    </>
+  );
+}
 
 function ArticleBlock({
   block,
   blockIndex,
+  repositoryUrl,
 }: {
   block: ProjectCaseStudyArticleBlock;
   blockIndex: number;
+  repositoryUrl?: string;
 }) {
   switch (block.type) {
     case 'paragraph':
-      return <ProjectP>{block.body}</ProjectP>;
+      return (
+        <ProjectP>
+          {renderParagraphBody(
+            block.body,
+            repositoryUrl,
+          )}
+        </ProjectP>
+      );
 
     case 'figure':
       return (
@@ -78,6 +142,7 @@ function ArticleBlock({
 
 export default function ProjectCaseStudyRenderer({
   sections,
+  repositoryUrl,
 }: ProjectCaseStudyRendererProps) {
   return (
     <>
@@ -97,6 +162,7 @@ export default function ProjectCaseStudyRenderer({
                 key={`${section.id}:${blockIndex}`}
                 block={block}
                 blockIndex={blockIndex}
+                repositoryUrl={repositoryUrl}
               />
             ))}
           </ProjectSection>

@@ -1,4 +1,4 @@
-﻿import {
+import {
   ROOT_LOCATION_ID,
   type PortfolioLocation,
 } from './semanticTypes';
@@ -92,6 +92,83 @@ export const PORTFOLIO_LOCATIONS =
         10,
     },
 
+
+    {
+      id:
+        'country:kenya',
+
+      label:
+        'Kenya',
+
+      shortLabel:
+        'Kenya',
+
+      level:
+        'country',
+
+      parentId:
+        ROOT_LOCATION_ID,
+
+      anchor:
+        [
+          37.9062,
+          -0.0236,
+        ],
+
+      bounds:
+        [
+          [
+            33.90,
+            -4.70,
+          ],
+          [
+            41.95,
+            5.10,
+          ],
+        ],
+
+      sortOrder:
+        15,
+    },
+
+
+    {
+      id:
+        'place:garissa',
+
+      label:
+        'Garissa, Kenya',
+
+      shortLabel:
+        'Garissa',
+
+      level:
+        'place',
+
+      parentId:
+        'country:kenya',
+
+      anchor:
+        [
+          39.6461,
+          -0.4532,
+        ],
+
+      bounds:
+        [
+          [
+            39.45,
+            -0.65,
+          ],
+          [
+            39.85,
+            -0.25,
+          ],
+        ],
+
+      sortOrder:
+        10,
+    },
 
     {
       id:

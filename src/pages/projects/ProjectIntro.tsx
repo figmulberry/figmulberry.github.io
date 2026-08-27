@@ -57,7 +57,7 @@ function MetadataLine({
         <React.Fragment key={`${item}:${index}`}>
           {index > 0 ? (
             <span aria-hidden="true">
-              {' · '}
+              {' \u00B7 '}
             </span>
           ) : null}
 
@@ -180,7 +180,7 @@ function ExploreAction({
         className="project-chevron-nudge inline-block"
         aria-hidden="true"
       >
-        ↓
+        &#8595;
       </span>
     </a>
   );
@@ -253,6 +253,7 @@ function EditorialColumn({
           onOverlay={onOverlay}
         />
       </div>
+
 
       <ToolsLine
         tools={data.tools}

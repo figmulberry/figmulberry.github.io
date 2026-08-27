@@ -1,5 +1,8 @@
 import { contentRecordSchema } from './schema';
 
+import { mappingFloodExtentGarissaProject } from
+  '@/content/projects/mapping-flood-extent-garissa/project';
+
 import { topoGridsPart1Article } from
   '@/content/articles/topo-grids-part-1/article';
 
@@ -40,6 +43,8 @@ import type {
 const sourceRecords: readonly ContentRecord[] = [
 
   arcgisProTool,
+
+  mappingFloodExtentGarissaProject,
 
 
   ...(

@@ -212,6 +212,7 @@ export default function ProjectPage() {
         heroImage
           ?.alt ??
         '',
+
     };
 
   const configuredIntroMode =
@@ -287,6 +288,9 @@ export default function ProjectPage() {
           <ProjectCaseStudyRenderer
             sections={
               project.caseStudy.sections
+            }
+            repositoryUrl={
+              project.repositoryUrl
             }
           />
         ) : (
