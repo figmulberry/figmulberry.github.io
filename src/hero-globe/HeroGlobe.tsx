@@ -2087,6 +2087,427 @@ export default function HeroGlobe({
     }
 
 
+    const COUNTRY_CLICK_DRAG_THRESHOLD_PX =
+      6;
+
+    let pointerDownCountryX =
+      0;
+
+    let pointerDownCountryY =
+      0;
+
+
+    function getCountryRepresentativeCoordinate(
+      country:
+        NonNullable<
+          ReturnType<
+            typeof findCountryAtCoordinate
+          >
+        >,
+    ): {
+      latitude: number;
+      longitude: number;
+    } {
+
+      const geometry =
+        country.geometry;
+
+      /*
+       * For MultiPolygons choose the largest outer ring.
+       * This avoids tiny offshore islands pulling the focus
+       * away from the country's principal landmass.
+       */
+      let outerRing:
+        number[][] |
+        null =
+        null;
+
+      if (
+        geometry.type ===
+        'Polygon'
+      ) {
+
+        outerRing =
+          (
+            geometry.coordinates[0] ??
+            null
+          ) as
+            number[][] |
+            null;
+
+      } else {
+
+        for (
+          const polygon of
+            geometry.coordinates
+        ) {
+
+          const candidate =
+            (
+              polygon[0] ??
+              null
+            ) as
+              number[][] |
+              null;
+
+          if (
+            candidate &&
+            (
+              !outerRing ||
+              candidate.length >
+                outerRing.length
+            )
+          ) {
+
+            outerRing =
+              candidate;
+          }
+        }
+      }
+
+      if (
+        !outerRing ||
+        outerRing.length === 0
+      ) {
+
+        return {
+          latitude:
+            0,
+
+          longitude:
+            0,
+        };
+      }
+
+      /*
+       * Spherical mean handles the antimeridian much better
+       * than averaging raw longitude values.
+       */
+      let x =
+        0;
+
+      let y =
+        0;
+
+      let z =
+        0;
+
+      let validCount =
+        0;
+
+      for (
+        const coordinate of
+          outerRing
+      ) {
+
+        const longitude =
+          Number(
+            coordinate[0],
+          );
+
+        const latitude =
+          Number(
+            coordinate[1],
+          );
+
+        if (
+          !Number.isFinite(
+            longitude,
+          ) ||
+          !Number.isFinite(
+            latitude,
+          )
+        ) {
+          continue;
+        }
+
+        const longitudeRadians =
+          THREE.MathUtils.degToRad(
+            longitude,
+          );
+
+        const latitudeRadians =
+          THREE.MathUtils.degToRad(
+            latitude,
+          );
+
+        const cosineLatitude =
+          Math.cos(
+            latitudeRadians,
+          );
+
+        x +=
+          cosineLatitude *
+          Math.cos(
+            longitudeRadians,
+          );
+
+        y +=
+          Math.sin(
+            latitudeRadians,
+          );
+
+        z +=
+          cosineLatitude *
+          Math.sin(
+            longitudeRadians,
+          );
+
+        validCount +=
+          1;
+      }
+
+      if (
+        validCount === 0
+      ) {
+
+        return {
+          latitude:
+            0,
+
+          longitude:
+            0,
+        };
+      }
+
+      x /=
+        validCount;
+
+      y /=
+        validCount;
+
+      z /=
+        validCount;
+
+      const horizontal =
+        Math.sqrt(
+          x * x +
+          z * z,
+        );
+
+      return {
+        latitude:
+          THREE.MathUtils.radToDeg(
+            Math.atan2(
+              y,
+              horizontal,
+            ),
+          ),
+
+        longitude:
+          THREE.MathUtils.radToDeg(
+            Math.atan2(
+              z,
+              x,
+            ),
+          ),
+      };
+    }
+
+
+    function focusCountry(
+      country:
+        NonNullable<
+          ReturnType<
+            typeof findCountryAtCoordinate
+          >
+        >,
+    ) {
+
+      const representative =
+        getCountryRepresentativeCoordinate(
+          country,
+        );
+
+      /*
+       * Country focus is an intentional manual view,
+       * so cancel any existing return motion first.
+       */
+      cancelAutoReturnTimer();
+      cancelReturnAnimation();
+
+      const startQuaternion =
+        presentationGroup
+          .quaternion
+          .clone();
+
+      const targetQuaternion =
+        createPresentationQuaternion(
+          representative.latitude,
+          representative.longitude,
+        );
+
+      const startTime =
+        performance.now();
+
+      const durationMs =
+        650;
+
+      function animateCountryFocus(
+        now:
+          number,
+      ) {
+
+        const progress =
+          Math.min(
+            1,
+            (
+              now -
+              startTime
+            ) /
+              durationMs,
+          );
+
+        /*
+         * Smooth cubic ease-out.
+         */
+        const eased =
+          1 -
+          Math.pow(
+            1 -
+              progress,
+            3,
+          );
+
+        presentationGroup
+          .quaternion
+          .copy(
+            startQuaternion,
+          )
+          .slerp(
+            targetQuaternion,
+            eased,
+          );
+
+        renderScene();
+        emitOrientation();
+
+        if (
+          progress <
+          1
+        ) {
+
+          returnAnimationFrame =
+            window.requestAnimationFrame(
+              animateCountryFocus,
+            );
+
+          return;
+        }
+
+        returnAnimationFrame =
+          undefined;
+
+        /*
+         * Preserve the established 30-second
+         * return-to-live/default contract.
+         */
+        scheduleAutoReturn();
+      }
+
+      returnAnimationFrame =
+        window.requestAnimationFrame(
+          animateCountryFocus,
+        );
+    }
+
+
+    function getCountryAtPointer(
+      clientX:
+        number,
+      clientY:
+        number,
+    ):
+      ReturnType<
+        typeof findCountryAtCoordinate
+      > {
+
+      if (!countryWorld) {
+        return null;
+      }
+
+      const bounds =
+        renderer.domElement
+          .getBoundingClientRect();
+
+      if (
+        bounds.width <= 0 ||
+        bounds.height <= 0
+      ) {
+        return null;
+      }
+
+      countryPointer.set(
+        (
+          (
+            clientX -
+            bounds.left
+          ) /
+            bounds.width
+        ) *
+          2 -
+          1,
+
+        -(
+          (
+            clientY -
+            bounds.top
+          ) /
+            bounds.height
+        ) *
+          2 +
+          1,
+      );
+
+      countryRaycaster.setFromCamera(
+        countryPointer,
+        camera,
+      );
+
+      const intersection =
+        countryRaycaster
+          .intersectObject(
+            earthMesh,
+            false,
+          )[0];
+
+      if (!intersection) {
+        return null;
+      }
+
+      const localPoint =
+        earthMesh.worldToLocal(
+          intersection.point.clone(),
+        )
+          .normalize();
+
+      const latitude =
+        THREE.MathUtils.radToDeg(
+          Math.asin(
+            THREE.MathUtils.clamp(
+              localPoint.y,
+              -1,
+              1,
+            ),
+          ),
+        );
+
+      const longitude =
+        THREE.MathUtils.radToDeg(
+          Math.atan2(
+            -localPoint.z,
+            localPoint.x,
+          ),
+        );
+
+      return findCountryAtCoordinate(
+        countryWorld,
+        longitude,
+        latitude,
+      );
+    }
+
+
     function handlePointerDown(
       event: PointerEvent,
     ) {
@@ -2114,6 +2535,12 @@ export default function HeroGlobe({
         event.clientX;
 
       previousPointerY =
+        event.clientY;
+
+      pointerDownCountryX =
+        event.clientX;
+
+      pointerDownCountryY =
         event.clientY;
 
       renderer.domElement
@@ -2197,6 +2624,23 @@ export default function HeroGlobe({
         return;
       }
 
+      const pointerTravel =
+        Math.hypot(
+          event.clientX -
+            pointerDownCountryX,
+          event.clientY -
+            pointerDownCountryY,
+        );
+
+      const clickedCountry =
+        pointerTravel <=
+          COUNTRY_CLICK_DRAG_THRESHOLD_PX
+          ? getCountryAtPointer(
+              event.clientX,
+              event.clientY,
+            )
+          : null;
+
       if (
         renderer.domElement
           .hasPointerCapture(
@@ -2217,6 +2661,23 @@ export default function HeroGlobe({
 
       renderer.domElement.style.cursor =
         'grab';
+
+      if (
+        clickedCountry
+      ) {
+
+        /*
+         * Clear transient pointer hover before rotation.
+         * Hover resumes naturally on the next pointer move.
+         */
+        clearCountryHover();
+
+        focusCountry(
+          clickedCountry,
+        );
+
+        return;
+      }
 
       scheduleAutoReturn();
     }
