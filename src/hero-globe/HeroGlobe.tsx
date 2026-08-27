@@ -108,6 +108,8 @@ interface HeroGlobeProps {
   onMoonPositionChange?: (
     moon: ProjectedMoonPosition,
   ) => void;
+
+  timeOffsetMinutes?: number;
 }
 
 interface CityDisplayState {
@@ -591,9 +593,23 @@ export default function HeroGlobe({
   onOrientationChange,
   onSunPositionChange,
   onMoonPositionChange,
+  timeOffsetMinutes = 0,
 }: HeroGlobeProps) {
   const mountRef =
     useRef<HTMLDivElement | null>(
+      null,
+    );
+
+  const timeOffsetMinutesRef =
+    useRef(
+      timeOffsetMinutes,
+    );
+
+  const refreshCelestialStateRef =
+    useRef<
+      (() => void) |
+      null
+    >(
       null,
     );
 
@@ -628,6 +644,16 @@ export default function HeroGlobe({
 
   moonCallbackRef.current =
     onMoonPositionChange;
+
+  timeOffsetMinutesRef.current =
+    timeOffsetMinutes;
+
+  useEffect(() => {
+    refreshCelestialStateRef
+      .current?.();
+  }, [
+    timeOffsetMinutes,
+  ]);
 
   useEffect(() => {
     const mountCandidate =
@@ -822,9 +848,17 @@ export default function HeroGlobe({
         0,
       );
 
+    const getDisplayDate =
+      () =>
+        new Date(
+          Date.now() +
+          timeOffsetMinutesRef.current *
+            60_000,
+        );
+
     let currentSolarPosition =
       calculateSolarPosition(
-        new Date(),
+        getDisplayDate(),
       );
 
     const moonDirectionEarth =
@@ -837,7 +871,7 @@ export default function HeroGlobe({
     let currentMoonState:
       MoonState =
       getMoonState(
-        new Date(),
+        getDisplayDate(),
       );
 
     moonDirectionEarth
@@ -1603,17 +1637,17 @@ export default function HeroGlobe({
     }
 
     function updateCelestialState() {
-      const now =
-        new Date();
+      const displayDate =
+        getDisplayDate();
 
       currentSolarPosition =
         calculateSolarPosition(
-          now,
+          displayDate,
         );
 
       const solar =
         getSolarDirectionVector(
-          now,
+          displayDate,
         );
 
       sunDirectionEarth
@@ -1626,7 +1660,7 @@ export default function HeroGlobe({
 
       currentMoonState =
         getMoonState(
-          now,
+          displayDate,
         );
 
       moonDirectionEarth
@@ -1931,6 +1965,9 @@ export default function HeroGlobe({
 
     resize();
 
+    refreshCelestialStateRef.current =
+      updateCelestialState;
+
     updateCelestialState();
     emitOrientation();
 
@@ -1941,6 +1978,9 @@ export default function HeroGlobe({
       );
 
     return () => {
+      refreshCelestialStateRef.current =
+        null;
+
       cancelAutoReturnTimer();
       cancelReturnAnimation();
 

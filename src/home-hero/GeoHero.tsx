@@ -167,7 +167,7 @@ export default function GeoHero() {
                 <span
                   aria-hidden="true"
                 >
-                  →
+                  {'\u2192'}
                 </span>
               </Link>
 

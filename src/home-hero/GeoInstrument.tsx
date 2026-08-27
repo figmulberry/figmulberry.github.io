@@ -1,5 +1,7 @@
 import React, {
   useCallback,
+  useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -12,6 +14,15 @@ import MoonSphere from './MoonSphere';
 import SunDisk from './SunDisk';
 
 const TICK_COUNT = 72;
+
+const TIME_RANGE_MINUTES =
+  12 * 60;
+
+const TIME_STEP_MINUTES =
+  15;
+
+const TIME_RESET_DELAY_MS =
+  30_000;
 
 const EARTH_INSET_PERCENT =
   8.6;
@@ -578,6 +589,321 @@ function MoonMarker({
   );
 }
 
+function formatTimeOffset(
+  minutes: number,
+): string {
+  if (minutes === 0) {
+    return 'NOW';
+  }
+
+  const sign =
+    minutes > 0
+      ? '+'
+      : '-';
+
+  const absolute =
+    Math.abs(
+      minutes,
+    );
+
+  const hours =
+    Math.floor(
+      absolute /
+      60,
+    );
+
+  const remainingMinutes =
+    absolute %
+    60;
+
+  return (
+    `${sign}${String(
+      hours,
+    ).padStart(
+      2,
+      '0',
+    )}:${String(
+      remainingMinutes,
+    ).padStart(
+      2,
+      '0',
+    )}`
+  );
+}
+
+
+function formatExploredDateTime(
+  offsetMinutes: number,
+): string {
+  const date =
+    new Date(
+      Date.now() +
+      offsetMinutes *
+        60_000,
+    );
+
+  const datePart =
+    new Intl.DateTimeFormat(
+      undefined,
+      {
+        day:
+          '2-digit',
+
+        month:
+          'short',
+
+        year:
+          'numeric',
+      },
+    )
+      .format(
+        date,
+      )
+      .toUpperCase();
+
+  const timePart =
+    new Intl.DateTimeFormat(
+      undefined,
+      {
+        hour:
+          '2-digit',
+
+        minute:
+          '2-digit',
+
+        hour12:
+          false,
+      },
+    )
+      .format(
+        date,
+      );
+
+  return (
+    `${datePart} \u00B7 ${timePart}`
+  );
+}
+
+function MiniTimeClock({
+  offsetMinutes,
+}: {
+  offsetMinutes: number;
+}) {
+  const exploredDate =
+    new Date(
+      Date.now() +
+      offsetMinutes *
+        60_000,
+    );
+
+  const minutes =
+    exploredDate.getMinutes();
+
+  const hours =
+    exploredDate.getHours() %
+    12;
+
+  const minuteAngle =
+    minutes *
+    6;
+
+  const hourAngle =
+    hours *
+      30 +
+    minutes *
+      0.5;
+
+  return (
+    <span
+      aria-hidden="true"
+      className="earth-time-clock"
+    >
+      <span
+        className="earth-time-clock-hour"
+        style={{
+          transform:
+            `translateX(-50%) rotate(${hourAngle}deg)`,
+        }}
+      />
+
+      <span
+        className="earth-time-clock-minute"
+        style={{
+          transform:
+            `translateX(-50%) rotate(${minuteAngle}deg)`,
+        }}
+      />
+
+      <span
+        className="earth-time-clock-center"
+      />
+    </span>
+  );
+}
+
+function TimeExplorer({
+  offsetMinutes,
+  onOffsetChange,
+  onReturnToNow,
+}: {
+  offsetMinutes: number;
+  onOffsetChange: (
+    value: number,
+  ) => void;
+  onReturnToNow: () => void;
+}) {
+  return (
+    <div
+      className={[
+        'absolute',
+        'left-1/2',
+        '-bottom-[3.4rem]',
+        'z-30',
+        'w-[min(82%,420px)]',
+        '-translate-x-1/2',
+      ].join(' ')}
+    >
+      <div
+        className={[
+          'mb-2',
+          'flex',
+          'items-center',
+          'justify-between',
+          'px-0.5',
+          'text-[0.62rem]',
+          'font-medium',
+          'uppercase',
+          'tracking-[0.12em]',
+          'text-muted-foreground/80',
+        ].join(' ')}
+      >
+        <span>
+          Live Earth
+        </span>
+
+        <span
+          className={[
+            'font-mono',
+            'tracking-[0.06em]',
+            'text-foreground/72',
+          ].join(' ')}
+        >
+          {formatExploredDateTime(
+            offsetMinutes,
+          )}
+        </span>
+      </div>
+
+      <input
+        type="range"
+        min={
+          -TIME_RANGE_MINUTES
+        }
+        max={
+          TIME_RANGE_MINUTES
+        }
+        step={
+          TIME_STEP_MINUTES
+        }
+        value={
+          offsetMinutes
+        }
+        aria-label="Explore Earth time from twelve hours ago to twelve hours ahead"
+        onChange={
+          event => {
+            onOffsetChange(
+              Number(
+                event.target.value,
+              ),
+            );
+          }
+        }
+        className="earth-time-slider"
+      />
+
+      <div
+        className={[
+          'relative',
+          'mt-1.5',
+          'h-9',
+          'text-[0.58rem]',
+          'font-medium',
+          'tracking-[0.07em]',
+        ].join(' ')}
+      >
+        <span
+          aria-hidden="true"
+          className={[
+            'absolute',
+            'left-0',
+            'top-1',
+            'text-muted-foreground/72',
+          ].join(' ')}
+        >
+          -12H
+        </span>
+
+        <button
+          type="button"
+          onClick={
+            onReturnToNow
+          }
+          className={[
+            'absolute',
+            'left-1/2',
+            'top-0',
+            'flex',
+            '-translate-x-1/2',
+            'cursor-pointer',
+            'flex-col',
+            'items-center',
+            'gap-0.5',
+            'border-0',
+            'bg-transparent',
+            'p-0',
+            'font-semibold',
+            'tracking-[0.08em]',
+            offsetMinutes ===
+              0
+              ? 'text-accent'
+              : 'text-foreground/70 hover:text-accent',
+            'focus-visible:outline-none',
+            'focus-visible:ring-1',
+            'focus-visible:ring-accent',
+          ].join(' ')}
+        >
+          <MiniTimeClock
+            offsetMinutes={
+              offsetMinutes
+            }
+          />
+
+          <span>
+            {offsetMinutes ===
+              0
+              ? 'NOW'
+              : formatTimeOffset(
+                  offsetMinutes,
+                )}
+          </span>
+        </button>
+
+        <span
+          aria-hidden="true"
+          className={[
+            'absolute',
+            'right-0',
+            'top-1',
+            'text-muted-foreground/72',
+          ].join(' ')}
+        >
+          +12H
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function getCelestialDisplayPosition(
   surfaceX: number,
   surfaceY: number,
@@ -659,6 +985,22 @@ function getCelestialDisplayPosition(
 
 export default function GeoInstrument() {
   const [
+    timeOffsetMinutes,
+    setTimeOffsetMinutes,
+  ] =
+    useState(
+      0,
+    );
+
+  const temporalReturnTimer =
+    useRef<
+      number |
+      undefined
+    >(
+      undefined,
+    );
+
+  const [
     sunPosition,
     setSunPosition,
   ] =
@@ -674,7 +1016,96 @@ export default function GeoInstrument() {
       null,
     );
 
+  const cancelTemporalReturn =
+    useCallback(
+      () => {
+        if (
+          temporalReturnTimer.current !==
+          undefined
+        ) {
+          window.clearTimeout(
+            temporalReturnTimer.current,
+          );
+
+          temporalReturnTimer.current =
+            undefined;
+        }
+      },
+      [],
+    );
+
+  const returnToNow =
+    useCallback(
+      () => {
+        cancelTemporalReturn();
+
+        setTimeOffsetMinutes(
+          0,
+        );
+      },
+      [
+        cancelTemporalReturn,
+      ],
+    );
+
+  const scheduleTemporalReturn =
+    useCallback(
+      () => {
+        cancelTemporalReturn();
+
+        temporalReturnTimer.current =
+          window.setTimeout(
+            () => {
+              setTimeOffsetMinutes(
+                0,
+              );
+
+              temporalReturnTimer.current =
+                undefined;
+            },
+            TIME_RESET_DELAY_MS,
+          );
+      },
+      [
+        cancelTemporalReturn,
+      ],
+    );
+
+  const handleTimeOffsetChange =
+    useCallback(
+      (
+        value: number,
+      ) => {
+        setTimeOffsetMinutes(
+          value,
+        );
+
+        if (value === 0) {
+          cancelTemporalReturn();
+          return;
+        }
+
+        scheduleTemporalReturn();
+      },
+      [
+        cancelTemporalReturn,
+        scheduleTemporalReturn,
+      ],
+    );
+
+  useEffect(
+    () => {
+      return () => {
+        cancelTemporalReturn();
+      };
+    },
+    [
+      cancelTemporalReturn,
+    ],
+  );
+
   const handleSunPositionChange =
+
     useCallback(
       (
         sun:
@@ -772,6 +1203,7 @@ export default function GeoInstrument() {
       className={[
         'relative',
         'mx-auto',
+        'mb-14',
         'aspect-square',
         'w-full',
         'max-w-[620px]',
@@ -792,6 +1224,9 @@ export default function GeoInstrument() {
         ].join(' ')}
       >
         <HeroGlobe
+          timeOffsetMinutes={
+            timeOffsetMinutes
+          }
           onSunPositionChange={
             handleSunPositionChange
           }
@@ -813,8 +1248,202 @@ export default function GeoInstrument() {
         }
       />
 
+      <TimeExplorer
+        offsetMinutes={
+          timeOffsetMinutes
+        }
+        onOffsetChange={
+          handleTimeOffsetChange
+        }
+        onReturnToNow={
+          returnToNow
+        }
+      />
+
       <style>
         {`
+          .earth-time-clock {
+            position: relative;
+
+            display: block;
+
+            width: 16px;
+            height: 16px;
+
+            border:
+              1.25px solid
+              currentColor;
+
+            border-radius:
+              999px;
+
+            opacity: 0.84;
+          }
+
+          .earth-time-clock-hour,
+          .earth-time-clock-minute {
+            position: absolute;
+
+            left: 50%;
+            bottom: 50%;
+
+            display: block;
+
+            width: 1px;
+
+            background:
+              currentColor;
+
+            border-radius:
+              999px;
+
+            transform-origin:
+              50% 100%;
+          }
+
+          .earth-time-clock-hour {
+            height: 4.5px;
+          }
+
+          .earth-time-clock-minute {
+            height: 6px;
+
+            opacity: 0.9;
+          }
+
+          .earth-time-clock-center {
+            position: absolute;
+
+            left: 50%;
+            top: 50%;
+
+            width: 2.5px;
+            height: 2.5px;
+
+            transform:
+              translate(
+                -50%,
+                -50%
+              );
+
+            border-radius:
+              999px;
+
+            background:
+              currentColor;
+          }
+
+          .earth-time-slider {
+
+            display: block;
+
+            width: 100%;
+            height: 18px;
+
+            margin: 0;
+
+            appearance: none;
+            -webkit-appearance: none;
+
+            cursor: pointer;
+
+            background:
+              transparent;
+          }
+
+          .earth-time-slider:focus {
+            outline: none;
+          }
+
+          .earth-time-slider::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 3px;
+
+            border-radius:
+              999px;
+
+            background:
+              linear-gradient(
+                to right,
+                hsl(var(--muted-foreground) / 0.24),
+                hsl(var(--muted-foreground) / 0.24)
+              );
+          }
+
+          .earth-time-slider::-webkit-slider-thumb {
+            width: 14px;
+            height: 14px;
+
+            margin-top: -5.5px;
+
+            appearance: none;
+            -webkit-appearance: none;
+
+            border: 2px solid
+              hsl(var(--background));
+
+            border-radius:
+              999px;
+
+            background:
+              hsl(var(--accent));
+
+            box-shadow:
+              0 0 0 1px
+              hsl(var(--accent) / 0.28),
+              0 2px 8px
+              rgb(0 0 0 / 0.18);
+          }
+
+          .earth-time-slider::-moz-range-track {
+            width: 100%;
+            height: 3px;
+
+            border: 0;
+
+            border-radius:
+              999px;
+
+            background:
+              hsl(
+                var(--muted-foreground) /
+                0.24
+              );
+          }
+
+          .earth-time-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+
+            border: 2px solid
+              hsl(var(--background));
+
+            border-radius:
+              999px;
+
+            background:
+              hsl(var(--accent));
+
+            box-shadow:
+              0 0 0 1px
+              hsl(var(--accent) / 0.28),
+              0 2px 8px
+              rgb(0 0 0 / 0.18);
+          }
+
+          .earth-time-slider:focus-visible::-webkit-slider-thumb {
+            box-shadow:
+              0 0 0 3px
+              hsl(var(--accent) / 0.22);
+          }
+
+          .earth-time-slider:focus-visible::-moz-range-thumb {
+            box-shadow:
+              0 0 0 3px
+              hsl(var(--accent) / 0.22);
+          }
+
+
           .moon-marker {
             position: relative;
 
