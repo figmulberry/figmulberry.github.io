@@ -113,7 +113,7 @@ function ProjectLandingMetadata({
                 aria-hidden="true"
                 className="text-muted-foreground/70"
               >
-                {' · '}
+                {' \u00B7 '}
               </span>
             ) : null}
 
@@ -317,7 +317,7 @@ function SelectedProject({
             }
           </h3>
 
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
+          <p className="mt-3 line-clamp-2 text-sm leading-6 text-muted-foreground">
             {
               project.description
             }

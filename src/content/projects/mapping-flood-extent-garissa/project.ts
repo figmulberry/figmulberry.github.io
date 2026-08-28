@@ -425,7 +425,7 @@ export const mappingFloodExtentGarissaProject = {
             },
 
             width:
-              'wide',
+              'normal',
           },
 
           {
@@ -479,7 +479,7 @@ export const mappingFloodExtentGarissaProject = {
     true,
 
   portfolioOrder:
-    1,
+    undefined,
 
   locations: [
     {

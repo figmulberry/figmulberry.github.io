@@ -140,7 +140,7 @@ export default function Home() {
 
       {/* Featured Projects */}
 
-      {featuredProjects.length > 0 && (
+      {featuredProjects.length === 3 && (
         <section
         className={[
           'w-full',

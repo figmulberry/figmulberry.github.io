@@ -384,7 +384,7 @@ export default function ProjectIntro({
     mode === 'image-left';
 
   return (
-    <section className="px-6 md:px-10 xl:px-16">
+    <section className="min-h-[calc(100svh-5rem)] px-6 pb-10 md:px-10 md:pb-12 xl:px-16">
       <MetadataLine
         meta={data.meta}
         className={
@@ -394,7 +394,7 @@ export default function ProjectIntro({
         }
       />
 
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-12 lg:gap-16">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-[minmax(0,0.42fr)_minmax(0,0.58fr)] md:gap-6 lg:gap-8">
         <div
           className={
             imageFirst
@@ -409,9 +409,12 @@ export default function ProjectIntro({
             height={1024}
             className={[
               'block',
-              'h-auto',
+              'h-[300px]',
               'w-full',
-              'object-contain',
+              'object-cover',
+              'sm:h-[360px]',
+              'md:h-[420px]',
+              'lg:h-[480px]',
             ].join(' ')}
           />
         </div>
@@ -421,8 +424,8 @@ export default function ProjectIntro({
             'flex',
             'items-center',
             imageFirst
-              ? 'md:order-2'
-              : 'md:order-1',
+              ? 'md:order-2 md:pl-10 lg:pl-14'
+              : 'md:order-1 md:pr-10 lg:pr-14',
           ].join(' ')}
         >
           <EditorialColumn

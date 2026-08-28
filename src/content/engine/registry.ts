@@ -3,6 +3,9 @@ import { contentRecordSchema } from './schema';
 import { mappingFloodExtentGarissaProject } from
   '@/content/projects/mapping-flood-extent-garissa/project';
 
+import { amazonBr163ForestChangePyeoProject } from
+  '@/content/projects/amazon-br163-forest-change-pyeo/project';
+
 import { topoGridsPart1Article } from
   '@/content/articles/topo-grids-part-1/article';
 
@@ -45,6 +48,8 @@ const sourceRecords: readonly ContentRecord[] = [
   arcgisProTool,
 
   mappingFloodExtentGarissaProject,
+
+  amazonBr163ForestChangePyeoProject,
 
 
   ...(

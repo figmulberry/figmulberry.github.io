@@ -167,11 +167,7 @@ export function ProjectFigure({
         src={src}
         alt={alt}
         loading="lazy"
-        className="w-full object-cover"
-        style={{
-          aspectRatio:
-            ratio,
-        }}
+        className="h-auto w-full object-contain"
       />
 
       <figcaption
@@ -221,11 +217,7 @@ function PairedFigure({
         src={src}
         alt={alt}
         loading="lazy"
-        className="w-full object-cover"
-        style={{
-          aspectRatio:
-            '4 / 3',
-        }}
+        className="h-auto w-full object-contain"
       />
 
       <figcaption className="mt-2 font-mono text-xs leading-[1.6] text-muted-foreground">
@@ -493,7 +485,7 @@ export function ProjectEmbed({
           rel="noreferrer noopener"
           className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-accent hover:underline"
         >
-          Open interactive project ↗
+          Open interactive project {'\u2197'}
         </a>
       </div>
     </>

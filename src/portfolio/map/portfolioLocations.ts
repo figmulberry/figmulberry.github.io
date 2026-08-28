@@ -134,6 +134,45 @@ export const PORTFOLIO_LOCATIONS =
 
     {
       id:
+        'country:brazil',
+
+      label:
+        'Brazil',
+
+      shortLabel:
+        'Brazil',
+
+      level:
+        'country',
+
+      parentId:
+        ROOT_LOCATION_ID,
+
+      anchor:
+        [
+          -51.9253,
+          -14.2350,
+        ],
+
+      bounds:
+        [
+          [
+            -73.99,
+            -33.75,
+          ],
+          [
+            -34.79,
+            5.27,
+          ],
+        ],
+
+      sortOrder:
+        20,
+    },
+
+
+    {
+      id:
         'place:garissa',
 
       label:

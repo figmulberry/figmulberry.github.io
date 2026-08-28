@@ -88,11 +88,6 @@ export function ScrollToTop() {
   const historyNavigation =
     useRef(false);
 
-  const scrollFrame =
-    useRef<number | null>(
-      null,
-    );
-
   /*
    * Browser scroll restoration is disabled
    * because this component manages SPA
@@ -112,34 +107,15 @@ export function ScrollToTop() {
      * Save the current entry continuously
      * while the visitor scrolls.
      */
-    const handleScroll = () => {
-      if (
-        scrollFrame.current !==
-        null
-      ) {
-        window.cancelAnimationFrame(
-          scrollFrame.current,
-        );
-      }
-
-      scrollFrame.current =
-        window.requestAnimationFrame(
-          () => {
-            saveCurrentHistoryPosition();
-
-            scrollFrame.current =
-              null;
-          },
-        );
-    };
-
     /*
-     * Save once more immediately before
-     * an internal link navigation creates
-     * a new browser-history entry.
+     * Save the current entry immediately before
+     * an internal link navigation creates a new
+     * browser-history entry.
      *
-     * Capture phase means this happens
-     * before Wouter processes the click.
+     * Scroll position is intentionally NOT written
+     * continuously during scrolling. Frequent
+     * history.replaceState calls can trigger browser
+     * navigation throttling.
      */
     const handleDocumentClick = (
       event: MouseEvent,
@@ -194,14 +170,6 @@ export function ScrollToTop() {
         );
     };
 
-    window.addEventListener(
-      'scroll',
-      handleScroll,
-      {
-        passive: true,
-      },
-    );
-
     document.addEventListener(
       'click',
       handleDocumentClick,
@@ -220,11 +188,12 @@ export function ScrollToTop() {
       true,
     );
 
+    window.addEventListener(
+      'pagehide',
+      saveCurrentHistoryPosition,
+    );
+
     return () => {
-      window.removeEventListener(
-        'scroll',
-        handleScroll,
-      );
 
       document.removeEventListener(
         'click',
@@ -238,15 +207,11 @@ export function ScrollToTop() {
         true,
       );
 
-      if (
-        scrollFrame.current !==
-        null
-      ) {
-        window.cancelAnimationFrame(
-          scrollFrame.current,
-        );
-      }
-    };
+      window.removeEventListener(
+        'pagehide',
+        saveCurrentHistoryPosition,
+      );
+};
   }, []);
 
   /*
