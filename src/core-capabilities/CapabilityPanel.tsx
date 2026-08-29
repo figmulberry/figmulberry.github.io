@@ -486,6 +486,7 @@ export default function CapabilityPanel({
             'flex-1',
           ].join(' ')}
         >
+          {activeArticle && (
           <p
             className={[
               'text-[0.64rem]',
@@ -500,6 +501,7 @@ export default function CapabilityPanel({
           >
             Related Article
           </p>
+          )}
 
           {activeArticle ? (
             <div
@@ -666,27 +668,7 @@ export default function CapabilityPanel({
                 </button>
               </div>
             </div>
-          ) : (
-            <div
-              className={[
-                'mt-2',
-                'flex',
-                'h-[78px]',
-                'items-center',
-                'border',
-                'border-border/50',
-                'bg-background/15',
-                'px-3.5',
-                'text-[0.7rem]',
-                'leading-5',
-                'text-muted-foreground',
-              ].join(' ')}
-            >
-              Related published content
-              will appear here when it
-              matches this capability.
-            </div>
-          )}
+          ) : null}
         </div>
 
         <div

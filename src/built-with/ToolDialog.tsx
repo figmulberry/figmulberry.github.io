@@ -27,6 +27,10 @@ import {
   getRelatedArticlesForTool,
 } from '@/lib/content/getRelatedArticlesForTool';
 
+import {
+  getRelatedProjectsForTool,
+} from '@/lib/content/getRelatedProjectsForTool';
+
 import { toolDialogData } from './toolDialogData';
 import type { Tool } from './types';
 
@@ -58,6 +62,15 @@ export default function ToolDialog({
 
   const relatedArticleCount =
     relatedArticleResult.total;
+
+  const relatedProjects =
+    tool
+      ? getRelatedProjectsForTool(
+          contentRegistry,
+          tool.name,
+          3,
+        )
+      : [];
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -203,8 +216,6 @@ export default function ToolDialog({
     metadata?.valueTags ??
     tool.whereUsed.slice(0, 4);
 
-  const projectDescriptions =
-    metadata?.projectDescriptions ?? [];
 
   const handleOverlayClick = (
     event: MouseEvent<HTMLDivElement>,
@@ -637,139 +648,166 @@ export default function ToolDialog({
           </section>
 
           <div className="my-7 h-px bg-border" />
-
           {/* Representative projects */}
-          <section>
-            <div className="flex items-center gap-3">
-              <FolderKanban className="h-5 w-5 text-[var(--dialog-accent)]" />
+          {relatedProjects.length > 0 && (
+            <>
+              <section>
+                <div className="flex items-center gap-3">
+                  <FolderKanban className="h-5 w-5 text-[var(--dialog-accent)]" />
 
-              <h3 className="text-xl font-bold">
-                Representative Projects
-              </h3>
-            </div>
+                  <h3 className="text-xl font-bold">
+                    Representative Projects
+                  </h3>
+                </div>
 
-            <div
-              className="
-                mt-5
-                grid
-                gap-4
-                md:grid-cols-2
-                xl:grid-cols-3
-              "
-            >
-              {tool.projects
-                .slice(0, 3)
-                .map((project, index) => (
-                  <Link
-                    key={project}
-                    href={tool.relatedHref}
-                    onClick={onClose}
-                    className="
-                      group
-                      flex
-                      min-h-[285px]
-                      flex-col
-                      overflow-hidden
-                      rounded-lg
-                      border
-                      border-border
-                      bg-card
-                      transition-all
-                      hover:-translate-y-0.5
-                      hover:border-[var(--dialog-accent)]
-                      hover:shadow-md
-                    "
-                  >
-                    <div
-                      className="
-                        h-32
-                        shrink-0
-                        overflow-hidden
-                        bg-muted
-                      "
-                    >
-                      <img
-                        src="/project-thumbnails/placeholder.webp"
-                        alt={`${project} project preview`}
-                        width={800}
-                        height={450}
-                        loading="lazy"
+                <div
+                  className="
+                    mt-5
+                    grid
+                    gap-4
+                    md:grid-cols-2
+                    xl:grid-cols-3
+                  "
+                >
+                  {relatedProjects.map(
+                    (
+                      project,
+                    ) => (
+                      <Link
+                        key={
+                          project.id
+                        }
+                        href={`/portfolio/${project.slug}`}
+                        onClick={
+                          onClose
+                        }
+                        aria-label={
+                          `View ${project.title}`
+                        }
                         className="
-                          h-full
-                          w-full
-                          object-cover
-                          transition-transform
-                          duration-300
-                          group-hover:scale-[1.03]
-                        "
-                      />
-                    </div>
-
-                    <div
-                      className="
-                        flex
-                        flex-1
-                        flex-col
-                        p-4
-                      "
-                    >
-                      <h4
-                        className="
+                          group
+                          flex
+                          min-h-0
+                          flex-col
                           overflow-hidden
-                          text-sm
-                          font-semibold
-                          leading-5
-                          transition-colors
-                          group-hover:text-[var(--dialog-accent)]
-                          [display:-webkit-box]
-                          [-webkit-box-orient:vertical]
-                          [-webkit-line-clamp:2]
+                          rounded-lg
+                          border
+                          border-border
+                          bg-card
+                          transition-all
+                          hover:-translate-y-0.5
+                          hover:border-[var(--dialog-accent)]
+                          hover:shadow-md
+                          focus-visible:outline-none
+                          focus-visible:ring-2
+                          focus-visible:ring-[var(--dialog-accent)]
+                          focus-visible:ring-offset-2
                         "
                       >
-                        {project}
-                      </h4>
+                        {project.thumbnail && (
+                          <div
+                            className="
+                              aspect-[16/9]
+                              shrink-0
+                              overflow-hidden
+                              border-b
+                              border-border/70
+                              bg-muted
+                            "
+                          >
+                            <img
+                              src={
+                                project.thumbnail.src
+                              }
+                              alt={
+                                project.thumbnail.alt ??
+                                `${project.title} project thumbnail`
+                              }
+                              width={
+                                project.thumbnail.width ??
+                                800
+                              }
+                              height={
+                                project.thumbnail.height ??
+                                450
+                              }
+                              loading="lazy"
+                              className="
+                                h-full
+                                w-full
+                                object-cover
+                                transition-transform
+                                duration-300
+                                group-hover:scale-[1.03]
+                              "
+                            />
+                          </div>
+                        )}
 
-                      <p
-                        className="
-                          mt-2
-                          overflow-hidden
-                          text-xs
-                          leading-5
-                          text-muted-foreground
-                          [display:-webkit-box]
-                          [-webkit-box-orient:vertical]
-                          [-webkit-line-clamp:2]
-                        "
-                      >
-                        {projectDescriptions[index] ??
-                          `Representative ${tool.category.toLowerCase()} work using ${tool.name}.`}
-                      </p>
+                        <div
+                          className="
+                            flex
+                            flex-1
+                            flex-col
+                            p-4
+                          "
+                        >
+                          <h4
+                            className="
+                              text-sm
+                              font-semibold
+                              leading-5
+                              transition-colors
+                              group-hover:text-[var(--dialog-accent)]
+                            "
+                          >
+                            {
+                              project.title
+                            }
+                          </h4>
 
-                      <span
-                        className="
-                          mt-auto
-                          inline-flex
-                          items-center
-                          gap-1
-                          pt-4
-                          text-xs
-                          font-medium
-                          text-muted-foreground
-                          transition-colors
-                          group-hover:text-[var(--dialog-accent)]
-                        "
-                      >
-                        View project
+                          <p
+                            className="
+                              mt-2
+                              line-clamp-3
+                              text-xs
+                              leading-5
+                              text-muted-foreground
+                            "
+                          >
+                            {
+                              project.description
+                            }
+                          </p>
 
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-            </div>
-          </section>
+                          <span
+                            className="
+                              mt-auto
+                              inline-flex
+                              items-center
+                              gap-1
+                              pt-4
+                              text-xs
+                              font-medium
+                              text-muted-foreground
+                              transition-colors
+                              group-hover:text-[var(--dialog-accent)]
+                            "
+                          >
+                            View project
 
-          <div className="my-7 h-px bg-border" />
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </span>
+                        </div>
+                      </Link>
+                    ),
+                  )}
+                </div>
+              </section>
+
+              <div className="my-7 h-px bg-border" />
+            </>
+          )}
 
           {/* Footer */}
           <footer
