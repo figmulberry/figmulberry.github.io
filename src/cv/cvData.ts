@@ -3,7 +3,7 @@ import type {
 } from './types';
 
 export const cvData: CVData = {
-  lastUpdated: '2026-08-23',
+  lastUpdated: '2026-08-30',
 
   profile: {
     name:
@@ -285,6 +285,32 @@ export const cvData: CVData = {
   researchProjects: [
     {
       id:
+        'amazon-br163-forest-change-pyeo',
+
+      title:
+        'Monitoring Forest Change along Amazon BR-163 with PyEO',
+
+      organization:
+        'Independent Geospatial Research Project',
+
+      location:
+        'Brazilian Amazon, Brazil',
+
+      startDate:
+        '2026-07',
+
+      endDate:
+        '2026-07',
+
+      description:
+        'Developed a reproducible Sentinel-2 forest-change monitoring workflow combining PyEO, machine-learning classification, multi-date change detection, vector GIS processing, administrative enrichment, and structured quality assurance for the Amazon BR-163 corridor.',
+
+      url:
+        'https://figmulberry.github.io/portfolio/amazon-br163-forest-change-pyeo/',
+    },
+
+    {
+      id:
         'hhi-spatial-strategies-peace',
 
       title:
@@ -304,6 +330,9 @@ export const cvData: CVData = {
 
       description:
         'Applied spatial analysis to armed-group activity, cross-border movement, and displacement patterns in urban and peri-urban areas of Eastern Democratic Republic of the Congo, including Goma, to examine overlooked population flows and spatial dimensions of conflict.',
+
+      url:
+        'https://www.youtube.com/watch?v=KqJG7Xi4EFo&t=3645s',
     },
 
     {
@@ -370,6 +399,9 @@ export const cvData: CVData = {
 
       description:
         'Organized, processed, and modeled NOAA remotely operated vehicle dive-track data, including development of custom geoprocessing approaches for converting and representing spatial coverage.',
+
+      url:
+        'https://inspire.redlands.edu/works/publication-dissertation/szkeq-1fw85',
     },
 
     {
