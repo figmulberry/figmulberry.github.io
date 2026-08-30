@@ -1,27 +1,93 @@
 import React from 'react';
-import { Link } from 'wouter';
+
+import {
+  Link,
+} from 'wouter';
 
 type LogoProps = {
   className?: string;
   linkTo?: string;
 };
 
-export function Logo({ className = '', linkTo = '/' }: LogoProps) {
-  const content = (
-    <span className={`font-semibold text-lg tracking-tight ${className}`}>
-      <span className="text-accent">{'{'}</span>
-      <span className="dark:text-white text-foreground"> Moses </span>
-      <span className="text-accent">{'}'}</span>
+function LogoMark({
+  className = '',
+}: {
+  className?: string;
+}) {
+  return (
+    <span
+      className={[
+        'relative',
+        'block',
+        'h-9',
+        'w-[4.35rem]',
+        className,
+      ].join(' ')}
+    >
+      <img
+        src="/brand/tkm-mark-black.png"
+        alt=""
+        aria-hidden="true"
+        className={[
+          'absolute',
+          'inset-0',
+          'h-full',
+          'w-full',
+          'object-contain',
+          'object-left',
+          'dark:hidden',
+        ].join(' ')}
+      />
+
+      <img
+        src="/brand/tkm-mark-white.png"
+        alt=""
+        aria-hidden="true"
+        className={[
+          'absolute',
+          'inset-0',
+          'hidden',
+          'h-full',
+          'w-full',
+          'object-contain',
+          'object-left',
+          'dark:block',
+        ].join(' ')}
+      />
     </span>
   );
+}
 
-  if (linkTo) {
-    return (
-      <Link href={linkTo} className="flex items-center">
-        {content}
-      </Link>
-    );
+export function Logo({
+  className = '',
+  linkTo = '/',
+}: LogoProps) {
+  const content = (
+    <LogoMark
+      className={className}
+    />
+  );
+
+  if (!linkTo) {
+    return content;
   }
 
-  return <div className="flex items-center">{content}</div>;
+  return (
+    <Link
+      href={linkTo}
+      aria-label="The Kalabash Mosaics home"
+      className={[
+        'inline-flex',
+        'items-center',
+        'rounded-sm',
+        'focus-visible:outline-none',
+        'focus-visible:ring-2',
+        'focus-visible:ring-ring',
+        'focus-visible:ring-offset-2',
+        'focus-visible:ring-offset-background',
+      ].join(' ')}
+    >
+      {content}
+    </Link>
+  );
 }

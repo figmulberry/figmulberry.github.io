@@ -47,85 +47,102 @@ import ArticlePage from
 import ArticlePreview from
   '@/pages/articles/ArticlePreview';
 
+import BlogDetailPage from
+  '@/pages/blogs/BlogDetailPage';
+
+import ProjectPage from
+  '@/pages/projects/ProjectPage';
+
+
 const queryClient =
   new QueryClient();
 
+
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route
-          path="/"
-          component={Home}
-        />
+    <>
+      <ScrollToTop />
 
-        <Route
-          path="/about"
-          component={About}
-        />
+      <Layout>
+        <Switch>
+          <Route
+            path="/"
+            component={Home}
+          />
 
-        <Route
-          path="/portfolio"
-          component={Portfolio}
-        />
+          <Route
+            path="/about"
+            component={About}
+          />
 
-        <Route
-          path="/articles/:slug"
-          component={ArticlePage}
-        />
+          <Route
+            path="/portfolio/:slug"
+            component={ProjectPage}
+          />
 
-        <Route
-          path="/articles"
-          component={Articles}
-        />
+          <Route
+            path="/portfolio"
+            component={Portfolio}
+          />
 
-        <Route
-          path="/preview/articles/:slug"
-          component={ArticlePreview}
-        />
+          <Route
+            path="/articles/:slug"
+            component={ArticlePage}
+          />
 
-        <Route
-          path="/blog"
-          component={Blog}
-        />
+          <Route
+            path="/articles"
+            component={Articles}
+          />
 
-        <Route
-          path="/cv"
-          component={CV}
-        />
+          <Route
+            path="/preview/articles/:slug"
+            component={ArticlePreview}
+          />
 
-        <Route
-          path="/media"
-          component={Media}
-        />
+          <Route
+            path="/blog/:slug"
+            component={BlogDetailPage}
+          />
 
-        <Route
-          path="/contact"
-          component={Contact}
-        />
+          <Route
+            path="/blog"
+            component={Blog}
+          />
 
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+          <Route
+            path="/cv"
+            component={CV}
+          />
+
+          <Route
+            path="/media"
+            component={Media}
+          />
+
+          <Route
+            path="/contact"
+            component={Contact}
+          />
+
+          <Route
+            component={NotFound}
+          />
+        </Switch>
+      </Layout>
+    </>
   );
 }
+
 
 function App() {
   return (
     <QueryClientProvider
       client={queryClient}
     >
-      <ThemeProvider
-        defaultTheme="dark"
-      >
+      <ThemeProvider>
         <TooltipProvider>
-          <WouterRouter
-            base={import.meta.env.BASE_URL.replace(
-              /\/$/,
-              '',
-            )}
-          >
-            <ScrollToTop />
+          <WouterRouter>
             <Router />
           </WouterRouter>
 
@@ -135,5 +152,6 @@ function App() {
     </QueryClientProvider>
   );
 }
+
 
 export default App;

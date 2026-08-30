@@ -1,0 +1,956 @@
+﻿/*
+ * ============================================================
+ * FULL PORTFOLIO PROJECT — PRODUCTION AUTHORING TEMPLATE
+ * ============================================================
+ *
+ * PURPOSE
+ * -------
+ * Copy this file into:
+ *
+ *   src/content/projects/<project-slug>/project.ts
+ *
+ * Then replace every REPLACE_* value.
+ *
+ * DO NOT register or publish the project until:
+ *
+ *   npm run typecheck
+ *   npm run build
+ *
+ * both pass.
+ *
+ *
+ * LOCKED PORTFOLIO ARCHITECTURE
+ * -----------------------------
+ *
+ * Intro modes:
+ *
+ *   image-left
+ *   image-right
+ *   overlay
+ *   wide
+ *
+ * Body:
+ *
+ *   standardized Article-style project body
+ *
+ * Preferred production section:
+ *
+ *   type: 'article'
+ *
+ * Supported Article blocks:
+ *
+ *   paragraph
+ *   figure
+ *   pull
+ *   before-after
+ *   workflow
+ *
+ *
+ * IMPORTANT
+ * ---------
+ *
+ * Do not redesign:
+ *
+ *   ProjectPage.tsx
+ *   ProjectIntro.tsx
+ *   ProjectArticle.tsx
+ *   ProjectCaseStudyRenderer.tsx
+ *   Portfolio.tsx
+ *
+ * simply to publish one project.
+ *
+ * A normal new project should require:
+ *
+ *   project.ts
+ *   assets
+ *   registry import + sourceRecords entry
+ *
+ * only.
+ * ============================================================
+ */
+
+
+// ============================================================
+// 1. PROJECT ASSET IMPORTS
+// ============================================================
+//
+// Keep the thumbnail separate from the intro hero whenever
+// their intended crops/purposes differ.
+//
+// Typical structure:
+//
+//   project.ts
+//   thumbnail.jpg
+//   hero.jpg
+//   assets/
+//     figure-01-....jpg
+//     figure-02-....png
+//     before.jpg
+//     after.jpg
+//
+// ============================================================
+
+import thumbnail from './thumbnail.jpg';
+
+import heroImage from
+  './hero.jpg';
+
+import figure01 from
+  './assets/figure-01.jpg';
+
+import figure02 from
+  './assets/figure-02.jpg';
+
+import beforeImage from
+  './assets/before.jpg';
+
+import afterImage from
+  './assets/after.jpg';
+
+
+// ============================================================
+// 2. SHARED CONTENT IMPORTS
+// ============================================================
+
+import {
+  mosesThiongo,
+} from '@/content/shared/authors';
+
+import type {
+  ProjectContent,
+} from '@/content/engine/types';
+
+
+// ============================================================
+// 3. PROJECT RECORD
+// ============================================================
+
+export const REPLACE_PROJECT_EXPORT_NAME = {
+
+  // ----------------------------------------------------------
+  // CONTENT IDENTITY
+  // ----------------------------------------------------------
+
+  schemaVersion: 1,
+
+  id:
+    'project-REPLACE_PROJECT_SLUG',
+
+  contentType:
+    'project',
+
+  slug:
+    'REPLACE_PROJECT_SLUG',
+
+  aliases: [],
+
+
+  // ----------------------------------------------------------
+  // PRIMARY PUBLIC METADATA
+  // ----------------------------------------------------------
+
+  title:
+    'REPLACE_PROJECT_TITLE',
+
+  description:
+    'REPLACE_WITH_A_CONCISE_PORTFOLIO_LANDING_AND_SEARCH_DESCRIPTION.',
+
+  status:
+    'draft',
+
+  publishedAt:
+    'REPLACE_YYYY-MM-DD',
+
+  updatedAt:
+    undefined,
+
+  authors: [
+    mosesThiongo,
+  ],
+
+
+  // ----------------------------------------------------------
+  // DISCOVERY / SEARCH
+  // ----------------------------------------------------------
+
+  tags: [
+    'REPLACE_TAG_1',
+    'REPLACE_TAG_2',
+    'REPLACE_TAG_3',
+  ],
+
+  topicIds: [],
+
+  featured:
+    false,
+
+  searchKeywords: [
+    'REPLACE_SEARCH_KEYWORD_1',
+    'REPLACE_SEARCH_KEYWORD_2',
+    'REPLACE_SEARCH_KEYWORD_3',
+  ],
+
+
+  // ----------------------------------------------------------
+  // CATALOGUE THUMBNAIL
+  // ----------------------------------------------------------
+  //
+  // Used by Portfolio landing cards.
+  //
+  // Prepare a deliberate catalogue image rather than simply
+  // duplicating the hero if the two purposes require
+  // different crops.
+  // ----------------------------------------------------------
+
+  thumbnail: {
+    src:
+      thumbnail,
+
+    alt:
+      'REPLACE_WITH_MEANINGFUL_THUMBNAIL_ALT_TEXT.',
+
+    width:
+      1600,
+
+    height:
+      900,
+  },
+
+
+  // ----------------------------------------------------------
+  // OPTIONAL BANNER
+  // ----------------------------------------------------------
+
+  banner:
+    undefined,
+
+
+  // ----------------------------------------------------------
+  // CONTENT RELATIONSHIPS
+  // ----------------------------------------------------------
+  //
+  // targetId must refer to an existing registry record.
+  //
+  // Example:
+  //
+  // {
+  //   type: 'uses',
+  //   targetId: 'tool-arcgis-pro',
+  //   label: 'Primary GIS software',
+  // },
+  //
+  // ----------------------------------------------------------
+
+  relationships: [],
+
+
+  // ----------------------------------------------------------
+  // PUBLICATION METADATA
+  // ----------------------------------------------------------
+
+  publication:
+    undefined,
+
+
+  // ==========================================================
+  // 4. PROJECT-SPECIFIC METADATA
+  // ==========================================================
+
+  category:
+    'REPLACE_CATEGORY',
+
+  projectType:
+    'REPLACE_PROJECT_TYPE',
+
+  role:
+    undefined,
+
+  client:
+    undefined,
+
+  dateStarted:
+    undefined,
+
+  dateCompleted:
+    undefined,
+
+
+  // ----------------------------------------------------------
+  // INTRO MODE
+  // ----------------------------------------------------------
+  //
+  // USE EXACTLY ONE:
+  //
+  //   'image-left'
+  //   'image-right'
+  //   'overlay'
+  //   'wide'
+  //
+  // ----------------------------------------------------------
+
+  introMode:
+    'image-left',
+
+
+  // ----------------------------------------------------------
+  // COLLABORATORS
+  // ----------------------------------------------------------
+
+  collaborators: [
+
+    // Example:
+    //
+    // {
+    //   name:
+    //     'Collaborator Name',
+    //
+    //   role:
+    //     'Role',
+    //
+    //   url:
+    //     'https://example.com',
+    // },
+
+  ],
+
+
+  // ----------------------------------------------------------
+  // TOOLS
+  // ----------------------------------------------------------
+  //
+  // These render as:
+  //
+  // Tools: ArcGIS Pro, Adobe Illustrator, QGIS
+  //
+  // They do NOT render as badges.
+  // ----------------------------------------------------------
+
+  tools: [
+    {
+      name:
+        'REPLACE_TOOL_1',
+    },
+
+    {
+      name:
+        'REPLACE_TOOL_2',
+    },
+  ],
+
+
+  // ----------------------------------------------------------
+  // INTRO HERO
+  // ----------------------------------------------------------
+
+  hero: {
+    src:
+      heroImage,
+
+    alt:
+      'REPLACE_WITH_MEANINGFUL_HERO_ALT_TEXT.',
+
+    width:
+      1920,
+
+    height:
+      1080,
+  },
+
+
+  // ==========================================================
+  // 5. FULL CASE STUDY
+  // ==========================================================
+
+  caseStudy: {
+
+    // --------------------------------------------------------
+    // INTRODUCTORY PARAGRAPH
+    // --------------------------------------------------------
+    //
+    // This is the concise editorial paragraph used in the
+    // project intro.
+    //
+    // Do not paste the entire Project Overview here.
+    // --------------------------------------------------------
+
+    introduction:
+      'REPLACE_WITH_THE_CONCISE_PROJECT_INTRODUCTION.',
+
+
+    // --------------------------------------------------------
+    // ESTIMATED READING TIME
+    // --------------------------------------------------------
+
+    readingMinutes:
+      8,
+
+
+    // ========================================================
+    // ARTICLE BODY
+    // ========================================================
+    //
+    // IMPORTANT:
+    //
+    // Use type: 'article' as the production standard.
+    //
+    // The FIRST section becomes the destination for:
+    //
+    //   EXPLORE PROJECT
+    //
+    // so use a meaningful first heading such as:
+    //
+    //   Project Overview
+    //
+    // ========================================================
+
+    sections: [
+
+
+      // ======================================================
+      // SECTION 1 — PROJECT OVERVIEW
+      // ======================================================
+
+      {
+        id:
+          'project-overview',
+
+        type:
+          'article',
+
+        title:
+          'Project Overview',
+
+        blocks: [
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_PROJECT_OVERVIEW_PARAGRAPH_1.',
+          },
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_PROJECT_OVERVIEW_PARAGRAPH_2.',
+          },
+
+
+          // --------------------------------------------------
+          // OPTIONAL NORMAL FIGURE
+          // --------------------------------------------------
+          //
+          // Figure numbering is automatic.
+          //
+          // width:
+          //
+          //   normal
+          //   wide
+          //   full
+          //
+          // --------------------------------------------------
+
+          {
+            type:
+              'figure',
+
+            image: {
+              src:
+                figure01,
+
+              alt:
+                'REPLACE_WITH_FIGURE_1_ALT_TEXT.',
+
+              caption:
+                'REPLACE_WITH_FIGURE_1_EDITORIAL_CAPTION.',
+            },
+
+            width:
+              'normal',
+
+            ratio:
+              '16 / 10',
+          },
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_THE_PARAGRAPH_THAT_FOLLOWS_FIGURE_1.',
+          },
+
+        ],
+      },
+
+
+      // ======================================================
+      // SECTION 2 — CONTEXT / CHALLENGE
+      // ======================================================
+
+      {
+        id:
+          'context-and-challenge',
+
+        type:
+          'article',
+
+        title:
+          'Context and Challenge',
+
+        blocks: [
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_CONTEXT_PARAGRAPH_1.',
+          },
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_CONTEXT_PARAGRAPH_2.',
+          },
+
+
+          // --------------------------------------------------
+          // OPTIONAL PULL / EMPHASIZED INSIGHT
+          // --------------------------------------------------
+
+          {
+            type:
+              'pull',
+
+            body:
+              'REPLACE_WITH_A_SHORT_MEANINGFUL_INSIGHT_OR_REMOVE_THIS_BLOCK.',
+          },
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_CONTEXT_PARAGRAPH_AFTER_THE_PULL.',
+          },
+
+        ],
+      },
+
+
+      // ======================================================
+      // SECTION 3 — METHODOLOGY / PROCESS
+      // ======================================================
+
+      {
+        id:
+          'methodology',
+
+        type:
+          'article',
+
+        title:
+          'Methodology',
+
+        blocks: [
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_METHODOLOGY_PARAGRAPH_1.',
+          },
+
+
+          // --------------------------------------------------
+          // OPTIONAL WORKFLOW
+          // --------------------------------------------------
+          //
+          // Only use when an ordered workflow genuinely
+          // strengthens the explanation.
+          // --------------------------------------------------
+
+          {
+            type:
+              'workflow',
+
+            items: [
+
+              {
+                title:
+                  'REPLACE_STEP_1_TITLE',
+
+                description:
+                  'REPLACE_STEP_1_DESCRIPTION.',
+              },
+
+              {
+                title:
+                  'REPLACE_STEP_2_TITLE',
+
+                description:
+                  'REPLACE_STEP_2_DESCRIPTION.',
+              },
+
+              {
+                title:
+                  'REPLACE_STEP_3_TITLE',
+
+                description:
+                  'REPLACE_STEP_3_DESCRIPTION.',
+              },
+
+            ],
+          },
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_METHODOLOGY_PARAGRAPH_AFTER_THE_WORKFLOW.',
+          },
+
+        ],
+      },
+
+
+      // ======================================================
+      // SECTION 4 — DESIGN / TECHNICAL DECISIONS
+      // ======================================================
+
+      {
+        id:
+          'design-decisions',
+
+        type:
+          'article',
+
+        title:
+          'Design Decisions',
+
+        blocks: [
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_DESIGN_DECISIONS_PARAGRAPH_1.',
+          },
+
+          {
+            type:
+              'figure',
+
+            image: {
+              src:
+                figure02,
+
+              alt:
+                'REPLACE_WITH_FIGURE_2_ALT_TEXT.',
+
+              caption:
+                'REPLACE_WITH_FIGURE_2_EDITORIAL_CAPTION.',
+            },
+
+            width:
+              'wide',
+
+            ratio:
+              '16 / 10',
+          },
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_DESIGN_DECISIONS_PARAGRAPH_2.',
+          },
+
+        ],
+      },
+
+
+      // ======================================================
+      // SECTION 5 — BEFORE / AFTER
+      // ======================================================
+      //
+      // Remove this section entirely when the project does not
+      // have a genuine before/after comparison.
+      // ======================================================
+
+      {
+        id:
+          'before-and-after',
+
+        type:
+          'article',
+
+        title:
+          'Before and After',
+
+        blocks: [
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_CONTEXT_FOR_THE_BEFORE_AFTER_COMPARISON.',
+          },
+
+          {
+            type:
+              'before-after',
+
+            before: {
+              src:
+                beforeImage,
+
+              alt:
+                'REPLACE_WITH_BEFORE_IMAGE_ALT_TEXT.',
+
+              caption:
+                'REPLACE_WITH_BEFORE_IMAGE_CAPTION.',
+            },
+
+            after: {
+              src:
+                afterImage,
+
+              alt:
+                'REPLACE_WITH_AFTER_IMAGE_ALT_TEXT.',
+
+              caption:
+                'REPLACE_WITH_AFTER_IMAGE_CAPTION.',
+            },
+          },
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_INTERPRETATION_OF_THE_COMPARISON.',
+          },
+
+        ],
+      },
+
+
+      // ======================================================
+      // SECTION 6 — RESULTS / OUTCOMES
+      // ======================================================
+
+      {
+        id:
+          'results',
+
+        type:
+          'article',
+
+        title:
+          'Results',
+
+        blocks: [
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_RESULTS_PARAGRAPH_1.',
+          },
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_RESULTS_PARAGRAPH_2.',
+          },
+
+        ],
+      },
+
+
+      // ======================================================
+      // SECTION 7 — CLOSING NOTES
+      // ======================================================
+
+      {
+        id:
+          'closing-notes',
+
+        type:
+          'article',
+
+        title:
+          'Closing Notes',
+
+        blocks: [
+
+          {
+            type:
+              'paragraph',
+
+            body:
+              'REPLACE_WITH_THE_FINAL_REFLECTION_OR_PROJECT_CLOSING.',
+          },
+
+        ],
+      },
+
+    ],
+  },
+
+
+  // ==========================================================
+  // 6. PORTFOLIO / HOMEPAGE PROMOTION
+  // ==========================================================
+
+  homepageFeatured:
+    false,
+
+  homepageFeaturedOrder:
+    undefined,
+
+
+  // ----------------------------------------------------------
+  // DAILY FEATURED PROJECT ELIGIBILITY
+  // ----------------------------------------------------------
+  //
+  // true:
+  //
+  //   eligible for the Portfolio landing daily rotation
+  //
+  // false:
+  //
+  //   still appears in All Projects but is excluded from
+  //   the rotating Featured Project position
+  //
+  // ----------------------------------------------------------
+
+  portfolioFeatured:
+    true,
+
+  portfolioOrder:
+    undefined,
+
+
+  // ==========================================================
+  // 7. SPATIAL LOCATION DATA
+  // ==========================================================
+  //
+  // Leave arrays empty for projects without a meaningful
+  // geographic placement.
+  //
+  // ==========================================================
+
+  locations: [
+
+    // Example:
+    //
+    // {
+    //   id:
+    //     'project-location-id',
+    //
+    //   label:
+    //     'Place Name',
+    //
+    //   latitude:
+    //     -1.2345,
+    //
+    //   longitude:
+    //     36.7890,
+    // },
+
+  ],
+
+
+  // ==========================================================
+  // 8. SEMANTIC MAP PLACEMENTS
+  // ==========================================================
+  //
+  // The locationId here must satisfy the existing Portfolio
+  // map semantic-location contract.
+  //
+  // VALID SCOPES:
+  //
+  //   global
+  //   country-wide
+  //   regional
+  //   place-wide
+  //   site-specific
+  //   multi-location
+  //
+  // ==========================================================
+
+  mapPlacements: [
+
+    // Example:
+    //
+    // {
+    //   locationId:
+    //     'place:REPLACE',
+    //
+    //   scope:
+    //     'place-wide',
+    // },
+
+  ],
+
+
+  // ==========================================================
+  // 9. LEGACY SUMMARY FIELDS
+  // ==========================================================
+  //
+  // These remain part of ProjectContent.
+  //
+  // Keep them meaningful even though the full caseStudy is
+  // the primary project narrative.
+  //
+  // ==========================================================
+
+  challenge:
+    'REPLACE_WITH_A_CONCISE_PROJECT_CHALLENGE_SUMMARY.',
+
+  approach:
+    'REPLACE_WITH_A_CONCISE_PROJECT_APPROACH_SUMMARY.',
+
+  outcomes: [],
+
+
+  // ----------------------------------------------------------
+  // LEGACY PROJECT GALLERY
+  // ----------------------------------------------------------
+  //
+  // Do not use this as a substitute for Article figures.
+  // Prefer figures inside caseStudy article sections.
+  // ----------------------------------------------------------
+
+  gallery: [],
+
+
+  // ==========================================================
+  // 10. DOWNLOADS / EXTERNAL LINKS
+  // ==========================================================
+
+  downloads: [],
+
+  repositoryUrl:
+    undefined,
+
+  liveUrl:
+    undefined,
+
+} satisfies ProjectContent;

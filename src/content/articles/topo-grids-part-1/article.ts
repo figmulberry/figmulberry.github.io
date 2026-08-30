@@ -1,5 +1,5 @@
 import body from './body.md?raw';
-import thumbnail from './thumbnail.png';
+import thumbnail from './thumbnail.jpg';
 
 import { mosesThiongo } from '@/content/shared/authors';
 
@@ -50,8 +50,8 @@ export const topoGridsPart1Article = {
     src: thumbnail,
     alt:
       'Historical topographic map showing measured grid lines, coordinates, contours, and terrain detail.',
-    width: 3137,
-    height: 1765,
+    width: 1800,
+    height: 1013,
   },
 
   seriesId:

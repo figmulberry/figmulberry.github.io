@@ -82,7 +82,7 @@
 
   --border: 220 13% 91%;
   --input: 220 13% 85%;
-  --ring: 35 85% 47%;
+  --ring: 4 87% 58%;
 
   --card: 0 0% 98%;
   --card-foreground: 220 15% 10%;
@@ -91,17 +91,17 @@
   --sidebar: 0 0% 98%;
   --sidebar-foreground: 220 15% 10%;
   --sidebar-border: 220 13% 91%;
-  --sidebar-primary: 35 85% 47%;
+  --sidebar-primary: 4 87% 58%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 220 13% 95%;
   --sidebar-accent-foreground: 220 15% 10%;
-  --sidebar-ring: 35 85% 47%;
+  --sidebar-ring: 4 87% 58%;
 
   --popover: 0 0% 100%;
   --popover-foreground: 220 15% 10%;
   --popover-border: 220 13% 91%;
 
-  --primary: 35 85% 47%;
+  --primary: 4 87% 58%;
   --primary-foreground: 0 0% 100%;
 
   --secondary: 220 13% 95%;
@@ -110,7 +110,7 @@
   --muted: 220 13% 95%;
   --muted-foreground: 220 10% 45%;
 
-  --accent: 35 85% 47%;
+  --accent: 4 87% 58%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
@@ -205,7 +205,7 @@
 
   --border: 220 20% 18%;
   --input: 220 20% 25%;
-  --ring: 35 85% 47%;
+  --ring: 4 87% 58%;
 
   --card: 220 22% 10%;
   --card-foreground: 220 10% 92%;
@@ -214,17 +214,17 @@
   --sidebar: 220 22% 10%;
   --sidebar-foreground: 220 10% 92%;
   --sidebar-border: 220 20% 18%;
-  --sidebar-primary: 35 85% 47%;
+  --sidebar-primary: 4 87% 58%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 220 20% 15%;
   --sidebar-accent-foreground: 220 10% 92%;
-  --sidebar-ring: 35 85% 47%;
+  --sidebar-ring: 4 87% 58%;
 
   --popover: 220 22% 10%;
   --popover-foreground: 220 10% 92%;
   --popover-border: 220 20% 18%;
 
-  --primary: 35 85% 47%;
+  --primary: 4 87% 58%;
   --primary-foreground: 0 0% 100%;
 
   --secondary: 220 20% 15%;
@@ -233,7 +233,7 @@
   --muted: 220 20% 15%;
   --muted-foreground: 220 10% 52%;
 
-  --accent: 35 85% 47%;
+  --accent: 4 87% 58%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 62% 50%;
@@ -295,12 +295,6 @@
 
   h4 {
     @apply text-xl font-semibold;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
   }
 }
 
@@ -487,4 +481,70 @@
   border-radius: 0.125rem;
   outline: 2px solid hsl(var(--ring));
   outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------
+   REDUCED MOTION
+   ---------------------------------------------------------
+   Keep state changes understandable while removing
+   non-essential movement for users who request reduced
+   motion at operating-system/browser level.
+   --------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+
+/* Portfolio project introduction: restrained continue-reading cue. */
+@keyframes project-chevron {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+/* =========================================================
+ * PROJECT INTRO — LOVABLE DIRECT PORT
+ * ========================================================= */
+
+@keyframes project-chevron-nudge {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(3px);
+  }
+}
+
+.project-chevron-nudge {
+  animation:
+    project-chevron-nudge
+    2.4s
+    ease-in-out
+    infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-chevron-nudge {
+    animation: none;
+  }
 }

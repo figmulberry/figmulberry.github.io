@@ -218,3 +218,40 @@ export function getArticleBySlug(
 
   return record;
 }
+
+export function getProjectBySlug(
+  records: readonly ContentRecord[],
+  slug: string,
+): Extract<
+  ContentRecord,
+  { contentType: 'project' }
+> | undefined {
+  const normalizedSlug =
+    slug.trim();
+
+  const record =
+    records.find(
+      (
+        item,
+      ) =>
+        item.contentType ===
+          'project' &&
+        (
+          item.slug ===
+            normalizedSlug ||
+          item.aliases.includes(
+            normalizedSlug,
+          )
+        ),
+    );
+
+  if (
+    !record ||
+    record.contentType !==
+      'project'
+  ) {
+    return undefined;
+  }
+
+  return record;
+}

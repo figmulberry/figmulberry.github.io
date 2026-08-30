@@ -1,7 +1,34 @@
-import { createRoot } from 'react-dom/client';
+import React from 'react';
+
+import ReactDOM from 'react-dom/client';
+
+import {
+  setWorkerUrl,
+} from 'maplibre-gl';
+
+import maplibreWorkerUrl from
+  'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 
 import App from './App';
 
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(<App />);
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+
+setWorkerUrl(
+  maplibreWorkerUrl,
+);
+
+
+ReactDOM
+  .createRoot(
+    document.getElementById(
+      'root',
+    )!,
+  )
+  .render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
