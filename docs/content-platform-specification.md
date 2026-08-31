@@ -1,275 +1,270 @@
-# The Kalabash Mosaics Content Platform Specification
+# Content Platform Specification
 
-**Version:** 1.0  
-**Status:** Approved foundation  
-**Repository:** `figmulberry.github.io`  
-**Public website:** The Kalabash Mosaics  
-**Last revised:** 2026-08-03
+Architecture contract for the content system supporting Moses Thiong'o's portfolio website.
 
-## 1. Purpose
+## Purpose
 
-The Kalabash Mosaics website is a long-term knowledge platform rather than a collection of disconnected static pages.
+The content platform provides one structured source for publishable content and the relationships between that content.
 
-The platform must support regular publication and continued growth for at least the next ten years without requiring article-specific page components, duplicated metadata, or manual updates across multiple sections of the website.
+It supports reuse across the website without manually duplicating the same content into individual presentation components.
 
-The website is both:
+This document defines architecture and invariants.
 
-1. the canonical content repository; and
-2. the only public presentation layer.
+Operational publishing instructions belong in `content-authoring-guide.md`.
 
-No separate MyST publication, external article renderer, or secondary public content site forms part of the production architecture.
+Website maintenance instructions belong in `site-maintenance-guide.md`.
 
-## 2. Core Principles
+---
 
-### 2.1 One source, many outputs
+## Architecture status
 
-A content item is defined once.
+### Implemented
 
-The registry then makes it available to:
+The current content engine supports these record types:
 
-- its canonical detail page;
-- the homepage;
-- content-library pages;
-- search;
-- category pages;
-- series pages;
-- tool relationships;
-- project relationships;
-- related-content sections;
-- sitemap generation;
-- future RSS feeds;
-- future newsletters;
-- future APIs.
+- article
+- blog
+- project
+- media
+- tool
+- topic
+- series
 
-Publishing one item must not require manually editing all of these locations.
+The production registry currently contains projects, articles, media, tools and series.
 
-### 2.2 One website, one deployment
+Blog is supported by the schema and application routes, but no production blog record currently exists.
 
-The React website is self-contained.
+### Architecture contract
 
-All production content, metadata, relationships, assets, routes, and presentation logic live in the `figmulberry.github.io` repository.
+Future content work should preserve the following rules unless the content architecture is intentionally redesigned.
 
-### 2.3 Stable identity
+---
 
-Every content item has a permanent string ID and slug.
+## One source, many outputs
 
-Titles may change. URLs may receive aliases. The underlying ID must remain stable.
+A content item should have one authoritative record.
 
-### 2.4 Relationships are data
+Pages, recommendations, related-content surfaces and other derived views should query that source rather than maintain separate copies.
 
-Connections between articles, projects, tools, media, blogs, topics, and series are stored as identifiers.
+Routine publication should not require editing every place where the content may appear.
 
-They are not hard-coded into page components.
+---
 
-### 2.5 Content types share a foundation
+## Stable identity
 
-Articles, blogs, projects, media, and future content types share a common base model while retaining their own specialized fields and page layouts.
+Every content record has a stable ID and canonical slug.
 
-### 2.6 Validation precedes publication
+IDs are relationship keys and must not be casually reused or changed.
 
-A production build must fail when published content contains critical defects, including:
+Slugs use lowercase kebab-case.
 
-- duplicate IDs;
-- duplicate canonical slugs;
-- invalid dates;
-- missing required metadata;
-- broken internal relationships;
-- invalid series ordering;
-- missing required assets;
-- unknown content types;
-- published items referencing draft-only content.
+Aliases may preserve previous or alternate routes where required.
 
-### 2.7 No placeholders in production
+---
 
-Placeholder articles, projects, media, images, descriptions, or relationships must not appear in the production registry.
+## Shared content contract
 
-Draft content may exist, but it must be excluded from public queries and routes.
+Content records share core metadata including:
 
-### 2.8 Backward compatibility
+- ID
+- content type
+- slug
+- aliases
+- title
+- description
+- status
+- publication date
+- authors
+- tags
+- topics
+- relationships
+- search metadata
 
-Published URLs must remain valid.
+Individual content types extend this shared contract with type-specific fields.
 
-When a slug changes, the previous slug must be preserved as an alias or redirect.
+---
 
-### 2.9 Accessible by default
+## Publication state
 
-Every public image requires meaningful alternative text unless it is explicitly decorative.
+Supported content states are:
 
-Interactive content must support keyboard navigation and visible focus.
+- draft
+- scheduled
+- published
+- archived
 
-Heading structure must remain logical and sequential.
+Published content is discoverable.
 
-### 2.10 Content becomes more valuable over time
-
-Each new publication should strengthen the wider website through search, related content, categories, series, tools, projects, and homepage discovery.
-
-The platform should compound in usefulness rather than merely accumulate pages.
-
-## 3. Content Types
+Scheduled content becomes discoverable when its publication time is reached.
 
-Version 1 recognizes:
+Draft content must not be treated as published content.
 
-- article;
-- blog;
-- project;
-- media;
-- tool;
-- topic;
-- series.
-
-The architecture must allow future content types without rewriting the registry.
-
-Potential future types include:
-
-- course;
-- workshop;
-- dataset;
-- template;
-- map;
-- publication;
-- book;
-- podcast;
-- newsletter;
-- conference talk;
-- plugin.
-
-## 4. Shared Content Fields
-
-Every primary content item must support:
-
-- `schemaVersion`
-- `id`
-- `contentType`
-- `slug`
-- `aliases`
-- `title`
-- `description`
-- `status`
-- `publishedAt`
-- `updatedAt`
-- `authors`
-- `tags`
-- `topicIds`
-- `featured`
-- `thumbnail`
-- `banner`
-- `relationships`
-- `searchKeywords`
-
-## 5. Status Model
-
-Supported content statuses:
-
-- `draft`
-- `scheduled`
-- `published`
-- `archived`
-
-Rules:
+---
 
-- Draft content is available during development but excluded from public queries.
-- Scheduled content is excluded until its publication date.
-- Published content appears in public routes and queries.
-- Archived content remains accessible unless explicitly redirected or retired.
-- Published content is never silently deleted.
+## Relationships are data
 
-## 6. Article Fields
+Connections between content records are represented as explicit relationships rather than hard-coded presentation logic.
 
-Articles may additionally contain:
+The relationship system supports incoming and outgoing resolution.
 
-- `subtitle`
-- `category`
-- `difficulty`
-- `seriesId`
-- `seriesPart`
-- `readingMinutes`
-- `body`
-- `tableOfContents`
-- `figureIds`
-- `referenceIds`
-- `requirements`
-- `learningObjectives`
-- `canonicalSource`
+Related-content surfaces should use those relationships or established query helpers rather than duplicate relationship lists in UI components.
 
-Articles are substantial technical publications, tutorials, research notes, or deep dives.
+The registry rejects relationships to unknown content IDs.
 
-## 7. Blog Fields
+A published record must not reference draft content.
 
-Blog posts may additionally contain:
+Duplicate relationships are invalid.
 
-- `category`
-- `body`
-- `readingMinutes`
+---
 
-Blogs are lighter, more timely, and more conversational than formal articles.
+## Registry
 
-## 8. Project Fields
+`src/content/engine/registry.ts` is the central production registry.
 
-Projects may additionally contain:
+A new production content record must be imported and included in the registry unless its content type has an intentionally different registration mechanism.
 
-- `category`
-- `role`
-- `client`
-- `dateStarted`
-- `dateCompleted`
-- `challenge`
-- `approach`
-- `outcomes`
-- `gallery`
-- `downloads`
-- `repositoryUrl`
-- `liveUrl`
+Registry validation protects:
 
-## 9. Media Fields
+- content identity
+- canonical slugs
+- aliases
+- relationships
+- publication relationships
+- series consistency
 
-Media items may additionally contain:
+Validation failures are defects to correct, not checks to bypass.
 
-- `mediaType`
-- `duration`
-- `platform`
-- `externalUrl`
-- `embedUrl`
-- `transcript`
+---
 
-## 10. Tool Fields
+## Articles
 
-Tools use stable IDs such as:
+Articles use structured metadata plus authored body content.
 
-- `arcgis-pro`
-- `qgis`
-- `python`
-- `jupyter`
-- `power-bi`
-- `microsoft-365`
-- `vscode`
-- `git`
-- `librepcb`
+They may include references, figures, table-of-contents metadata, requirements and series membership.
 
-Content references tools by ID rather than display name.
+Article presentation is shared; routine article publication should not require modifying the shared renderer.
 
-Tool pages and dialogs derive related content automatically from the registry.
+---
 
-## 11. Series
+## Blogs
 
-A series has:
+Blog is a supported content type with category, reading time and body content.
 
-- a stable series ID;
-- a title;
-- a description;
-- an optional banner;
-- an ordered list of content parts;
-- a completion state;
-- optional related tools and projects.
+No production blog record currently exists.
 
-Series order must be deterministic.
+The first production blog should establish and document the canonical authoring package without weakening the shared content contract.
 
-Two articles may not occupy the same part number in one series.
+---
 
-## 12. Relationships
+## Projects
 
-Relationships are bidirectional at query time.
+Projects are structured portfolio records.
 
-For example, when an article contains:
+A project may define:
 
-```text
-relatedToolIds: ["arcgis-pro"]
+- project metadata
+- role and collaborators
+- tools
+- hero and thumbnail imagery
+- case-study sections
+- challenge and approach
+- outcomes
+- locations
+- map placements
+- homepage and portfolio ordering
+- repository or live links
+
+Normal project publication must use the shared project renderer and existing portfolio-map data contract.
+
+A project should not require project-specific application architecture unless the shared platform itself is being extended.
+
+---
+
+## Media
+
+Media records represent publishable external or internal media resources.
+
+Media-specific metadata may include type, platform, duration and external URL.
+
+Media records participate in the same registry and relationship system as other content.
+
+---
+
+## Tools
+
+Tool records represent technologies used by or related to published work.
+
+Tool relationships can connect technologies with real projects and articles.
+
+The content-platform tool record is distinct from the current Built With presentation data.
+
+Until those systems are intentionally unified, documentation and maintenance must preserve that distinction.
+
+---
+
+## Series
+
+Series records maintain an ordered list of article IDs.
+
+A series article also identifies its series and part number.
+
+The registry validates both sides of that relationship.
+
+Series members must exist, must be articles, must point back to the correct series, and must not reuse the same series position.
+
+---
+
+## Validation
+
+Content validation occurs through the schema and registry before publication should be accepted.
+
+Routine content work must pass:
+
+```powershell
+npm run typecheck
+npm run build
+```
+
+The production build is also responsible for preparing GitHub Pages static routes.
+
+---
+
+## Rendering boundary
+
+Content records describe content.
+
+Shared renderers describe presentation.
+
+Do not put ordinary content-specific exceptions into shared renderers when the requirement can be expressed through the existing content contract.
+
+Change shared rendering architecture only when the platform itself needs a new reusable capability.
+
+---
+
+## Backward compatibility
+
+Stable IDs, canonical slugs and valid aliases should be preserved when content evolves.
+
+Existing public routes should not be broken casually.
+
+Changes to schemas or shared renderers must consider already-published records.
+
+---
+
+## Accessibility
+
+Published images require meaningful alternative text when the image conveys information.
+
+Interactive presentation must remain keyboard-usable and understandable without relying solely on visual effects.
+
+Accessibility is part of publication quality, not a post-publication correction.
+
+---
+
+## Production principle
+
+Content should compound the usefulness of the website.
+
+A new record should integrate through the existing content architecture wherever appropriate instead of creating an isolated one-off implementation.
+
+When the architecture cannot express a legitimate new requirement, extend the shared architecture deliberately and document the new contract.
