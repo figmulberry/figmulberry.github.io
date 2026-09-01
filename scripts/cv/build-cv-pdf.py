@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -26,6 +28,21 @@ from reportlab.platypus import (
 
 ROOT = Path(__file__).resolve().parents[2]
 
+CV_DATA_PATH = (
+    ROOT
+    / "src"
+    / "cv"
+    / "cvData.json"
+)
+
+with CV_DATA_PATH.open(
+    "r",
+    encoding="utf-8",
+) as cv_data_file:
+    CV_DATA = json.load(
+        cv_data_file
+    )
+
 OUTPUT_DIR = (
     ROOT
     / "public"
@@ -47,7 +64,17 @@ OUTPUT_PATH = (
 # ARIMO FONT DISCOVERY
 # =========================================================
 
-LOCAL_FONT_DIR = (
+def first_existing_path(
+    candidates: list[Path],
+) -> Path | None:
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return None
+
+
+WINDOWS_FONT_DIR = (
     Path.home()
     / "AppData"
     / "Local"
@@ -56,24 +83,66 @@ LOCAL_FONT_DIR = (
     / "Fonts"
 )
 
-ARIMO_REGULAR = (
-    LOCAL_FONT_DIR
-    / "Arimo-VariableFont_wght.ttf"
+LINUX_FONT_DIRS = [
+    Path("/usr/share/fonts/truetype/arimo"),
+    Path("/usr/share/fonts/truetype/croscore"),
+    Path("/usr/share/fonts/truetype/msttcorefonts"),
+    Path("/usr/local/share/fonts"),
+]
+
+
+ARIMO_REGULAR = first_existing_path(
+    [
+        WINDOWS_FONT_DIR
+        / "Arimo-VariableFont_wght.ttf",
+
+        WINDOWS_FONT_DIR
+        / "Arimo-Regular.ttf",
+
+        *[
+            directory / "Arimo-Regular.ttf"
+            for directory in LINUX_FONT_DIRS
+        ],
+    ]
 )
 
-ARIMO_BOLD = (
-    LOCAL_FONT_DIR
-    / "Arimo-Bold.ttf"
+ARIMO_BOLD = first_existing_path(
+    [
+        WINDOWS_FONT_DIR
+        / "Arimo-Bold.ttf",
+
+        *[
+            directory / "Arimo-Bold.ttf"
+            for directory in LINUX_FONT_DIRS
+        ],
+    ]
 )
 
-ARIMO_ITALIC = (
-    LOCAL_FONT_DIR
-    / "Arimo-Italic-VariableFont_wght.ttf"
+ARIMO_ITALIC = first_existing_path(
+    [
+        WINDOWS_FONT_DIR
+        / "Arimo-Italic-VariableFont_wght.ttf",
+
+        WINDOWS_FONT_DIR
+        / "Arimo-Italic.ttf",
+
+        *[
+            directory / "Arimo-Italic.ttf"
+            for directory in LINUX_FONT_DIRS
+        ],
+    ]
 )
 
-ARIMO_BOLD_ITALIC = (
-    LOCAL_FONT_DIR
-    / "Arimo-BoldItalic.ttf"
+ARIMO_BOLD_ITALIC = first_existing_path(
+    [
+        WINDOWS_FONT_DIR
+        / "Arimo-BoldItalic.ttf",
+
+        *[
+            directory / "Arimo-BoldItalic.ttf"
+            for directory in LINUX_FONT_DIRS
+        ],
+    ]
 )
 
 
@@ -93,16 +162,17 @@ required_fonts = {
 
 
 missing_fonts = [
-    str(path)
-    for path in required_fonts.values()
-    if not path.exists()
+    font_name
+    for font_name, font_path
+    in required_fonts.items()
+    if font_path is None
 ]
 
 
 if missing_fonts:
     raise SystemExit(
-        "STOPPED: Required Arimo font files "
-        "were not found:\n\n"
+        "STOPPED: Required Arimo fonts "
+        "could not be discovered:\n\n"
         + "\n".join(
             missing_fonts
         )
@@ -127,7 +197,6 @@ pdfmetrics.registerFontFamily(
     italic="Arimo-Italic",
     boldItalic="Arimo-BoldItalic",
 )
-
 
 # =========================================================
 # REFERENCE-MEASURED PAGE GEOMETRY
@@ -187,28 +256,14 @@ HEADER_RULE = colors.HexColor(
 # LINKS
 # =========================================================
 
+PROFILE = CV_DATA["profile"]
+PROFILE_LINKS = PROFILE["links"]
+
 LINKS = {
-    "email":
-        "mailto:kamusaley@gmail.com",
-
-    "website":
-        "https://figmulberry.github.io/",
-
-    "linkedin":
-        "https://www.linkedin.com/in/mkthiongo/",
-
-    "github":
-        "https://github.com/figmulberry",
-
-    "youtube":
-        "https://www.youtube.com/@thekalabashmosaics",
-
-    "instagram":
-        "https://www.instagram.com/musathiongo",
-
-    "orcid":
-        "https://orcid.org/0009-0005-4301-9507",
+    key: value["url"]
+    for key, value in PROFILE_LINKS.items()
 }
+
 
 
 # =========================================================
@@ -456,447 +511,217 @@ FOOTER = ParagraphStyle(
 
 
 # =========================================================
+# CV DATA ADAPTER
+# =========================================================
+
+def format_cv_month(
+    value: str | None,
+) -> str:
+    if not value:
+        return ""
+
+    year, month = value.split(
+        "-",
+        1,
+    )
+
+    month_names = {
+        "01": "January",
+        "02": "February",
+        "03": "March",
+        "04": "April",
+        "05": "May",
+        "06": "June",
+        "07": "July",
+        "08": "August",
+        "09": "September",
+        "10": "October",
+        "11": "November",
+        "12": "December",
+    }
+
+    return (
+        f"{month_names[month]} "
+        f"{year}"
+    )
+
+
+def experience_for_pdf(
+    records: list[dict],
+) -> list[dict]:
+    pdf_records = []
+
+    for record in records:
+        start = format_cv_month(
+            record.get("startDate")
+        )
+
+        if record.get("current"):
+            end = "Present"
+        else:
+            end = format_cv_month(
+                record.get("endDate")
+            )
+
+        dates = start
+
+        if end:
+            dates = (
+                f"{start} - {end}"
+            )
+
+        pdf_records.append(
+            {
+                "title":
+                    record["title"],
+
+                "organization":
+                    record["organization"],
+
+                "location":
+                    record["location"],
+
+                "dates":
+                    dates,
+
+                "bullets":
+                    record.get(
+                        "highlights",
+                        [],
+                    ),
+            }
+        )
+
+    return pdf_records
+
+
+def education_for_pdf(
+    records: list[dict],
+) -> list[dict]:
+    pdf_records = []
+
+    for record in records:
+        pdf_records.append(
+            {
+                "degree":
+                    record["qualification"],
+
+                "date":
+                    format_cv_month(
+                        record["completedAt"]
+                    ),
+
+                "institution":
+                    record["institution"],
+
+                "location":
+                    record["location"],
+
+                "research":
+                    record.get(
+                        "thesisOrProject"
+                    ),
+
+                "research_label":
+                    record.get(
+                        "thesisOrProjectLabel",
+                        "Research",
+                    ),
+
+                "advisors":
+                    record.get(
+                        "advisors",
+                        [],
+                    ),
+
+                "advisor_label":
+                    record.get(
+                        "advisorLabel",
+                        "Advisor",
+                    ),
+
+                "award":
+                    record.get(
+                        "award"
+                    ),
+            }
+        )
+
+    return pdf_records
+
+
+def core_expertise_for_pdf(
+    groups: list[dict],
+) -> list[tuple[str, str]]:
+    return [
+        (
+            f"{group['title']}:",
+            " · ".join(
+                group.get(
+                    "skills",
+                    [],
+                )
+            ),
+        )
+        for group in groups
+    ]
+
+
+def certifications_for_pdf(
+    records: list[dict],
+) -> list[tuple[str, str, str, str]]:
+    return [
+        (
+            record["issuer"],
+            record["title"],
+            format_cv_month(
+                record["completedAt"]
+            ),
+            record.get(
+                "url",
+                "",
+            ),
+        )
+        for record in records
+        if record.get(
+            "featured",
+            False,
+        )
+    ]
+
+
+# =========================================================
 # CV CONTENT
 # =========================================================
 
 PROFESSIONAL_SUMMARY = (
-    "Geospatial professional with over nine years of experience "
-    "across GIS analysis, spatial data management, enterprise GIS, "
-    "cartography, remote sensing, data quality, technical documentation, "
-    "research, training, data analytics, and AI training and evaluation. "
-    "Experienced in supporting global ArcGIS users, designing and validating "
-    "spatial data infrastructure, producing decision-support outputs, "
-    "conducting applied geospatial research, training field and technical "
-    "teams, and delivering complex work independently across distributed "
-    "environments. Combines strong geospatial domain expertise with "
-    "quality assurance, reproducible workflow design, analytical problem "
-    "solving, and structured evaluation of technical and AI-generated outputs."
+    CV_DATA["profile"]["summary"]
 )
 
 
-CORE_EXPERTISE = [
-    (
-        "GIS Platforms:",
-        "ArcGIS Pro 3.x · ArcGIS Enterprise · ArcGIS Online · "
-        "ArcMap · QGIS · ArcGIS Dashboards · ArcGIS Experience Builder"
-    ),
+CORE_EXPERTISE = core_expertise_for_pdf(
+    CV_DATA["skillGroups"]
+)
 
-    (
-        "Spatial Data Quality:",
-        "attribute validation · geometry and feature checks · coordinate "
-        "systems · projections · spatial-reference troubleshooting · "
-        "completeness and consistency review · duplicate and anomaly "
-        "detection · issue correction"
-    ),
 
-    (
-        "Geodatabases & Data Management:",
-        "ArcGIS geodatabases · enterprise geodatabase architecture · "
-        "PostgreSQL/PostGIS · SQL · data loading and interoperability · "
-        "metadata standards · version control"
-    ),
+EXPERIENCE = experience_for_pdf(
+    CV_DATA["experience"]
+)
 
-    (
-        "Mapping & Spatial Analysis:",
-        "vector and raster analysis · geoprocessing · land-use and "
-        "land-cover analysis · GPS field mapping · remote sensing · "
-        "map editing · thematic cartography · layouts and dashboards"
-    ),
 
-    (
-        "Earth Observation & Environmental Analysis:",
-        "Google Earth Engine · Sentinel-2 · Copernicus · OpenEO · WEkEO · "
-        "ClimateSERV · change detection · environmental monitoring"
-    ),
-
-    (
-        "Programming, Analytics & Automation:",
-        "Python · ArcPy · GeoPandas · Rasterio · R · SQL · Power BI · "
-        "batch scripting · reproducible GIS workflows"
-    ),
-
-    (
-        "AI Training & Evaluation:",
-        "rubric-based evaluation · output quality assessment · "
-        "annotation and labeling QA · consistency review · structured "
-        "feedback · prompt and workflow development · technical validation"
-    ),
-
-    (
-        "Technical Delivery & Communication:",
-        "technical documentation · knowledge-base writing · workflow design · "
-        "training · stakeholder communication · remote collaboration · "
-        "cross-functional delivery"
-    ),
+SELECTED_EXPERTISE = CV_DATA[
+    "selectedExpertise"
 ]
 
 
-EXPERIENCE = [
-    {
-        "title":
-            "QGIS Expert and AI Trainer | AI Training & Evaluation Contributor",
+EDUCATION = education_for_pdf(
+    CV_DATA["education"]
+)
 
-        "organization":
-            "Micro1 Inc.",
 
-        "location":
-            "Remote",
-
-        "dates":
-            "April 2026 - July 2026",
-
-        "bullets": [
-            (
-                "Led end-to-end GIS projects covering spatial data acquisition, "
-                "cleaning, validation, coordinate systems, geoprocessing, "
-                "symbology, cartographic layout production, and final-output quality."
-            ),
-
-            (
-                "Reviewed source datasets and geospatial outputs against technical "
-                "requirements, identifying attribute, geometry, CRS, classification, "
-                "completeness, and consistency issues and documenting corrective actions."
-            ),
-
-            (
-                "Validated maps and datasets through source-to-output reconciliation, "
-                "feature and extent checks, coordinate-system verification, output "
-                "inspection, and reproducible quality-assurance procedures."
-            ),
-
-            (
-                "Created workflow guides, QA checklists, reviewer notes, prompts, "
-                "evaluation standards, and troubleshooting records that made technical "
-                "decisions traceable and repeatable."
-            ),
-
-            (
-                "Evaluated AI-generated outputs using detailed rubrics and quality "
-                "standards, providing structured feedback across GIS and Microsoft 365 "
-                "workflows to support consistency and model improvement."
-            ),
-        ],
-    },
-
-    {
-        "title":
-            "GIS Specialist - THRIVE 2030 Kenya Project",
-
-        "organization":
-            "World Vision International",
-
-        "location":
-            "Nairobi, Kenya",
-
-        "dates":
-            "June 2024 - January 2026",
-
-        "bullets": [
-            (
-                "Worked closely with the Design, Monitoring, Evaluation, "
-                "Accountability and Learning (DMEAL) team on programme monitoring, "
-                "donor reporting, national planning, integrated data infrastructure, "
-                "and evidence-based decision support."
-            ),
-
-            (
-                "Designed and managed GIS infrastructure combining household, "
-                "environmental, land-use, and spatial datasets for 300,000+ households, "
-                "applying completeness, consistency, geolocation, metadata, "
-                "version-control, and change-tracking checks."
-            ),
-
-            (
-                "Validated GPS and field records, investigated location and attribute "
-                "inconsistencies, and produced corrected spatial datasets, maps, "
-                "dashboards, and analytical outputs for programme targeting and "
-                "strategic planning."
-            ),
-
-            (
-                "Trained 70+ field staff and developed step-by-step materials and "
-                "troubleshooting guidance to improve field data collection, "
-                "documentation, validation, and geolocation accuracy."
-            ),
-        ],
-    },
-
-    {
-        "title":
-            "Urban Planner and GIS Analyst",
-
-        "organization":
-            "United Nations Human Settlements Programme (UN-Habitat)",
-
-        "location":
-            "Nairobi, Kenya",
-
-        "dates":
-            "May 2023 - November 2023",
-
-        "bullets": [
-            (
-                "Reviewed, integrated, and validated multi-source topographic, "
-                "land-cover, socioeconomic, road, boundary, and coastal-planning "
-                "datasets, applying metadata, classification, and quality standards."
-            ),
-
-            (
-                "Developed a Spatial Data Hub and ArcGIS Dashboard for stakeholder "
-                "engagement, data sharing, programme reporting, and evidence-based planning."
-            ),
-
-            (
-                "Produced maps, spatial outputs, workflow documentation, and technical "
-                "briefs for cross-functional urban, coastal, and infrastructure-planning teams."
-            ),
-        ],
-    },
-
-    {
-        "title":
-            "GIS Analyst",
-
-        "organization":
-            "Environmental Systems Research Institute (Esri)",
-
-        "location":
-            "Redlands, CA, USA",
-
-        "dates":
-            "February 2020 - February 2023",
-
-        "bullets": [
-            (
-                "Supported global users of ArcGIS Pro and ArcGIS Enterprise across "
-                "infrastructure, land-management, environmental-monitoring, and related "
-                "sectors, building deep expertise in enterprise GIS and spatial-data quality."
-            ),
-
-            (
-                "Reviewed technical cases, user-provided datasets, geodatabases, "
-                "diagnostic information, and workflow descriptions; reproduced issues, "
-                "isolated root causes, validated outputs, and communicated precise resolutions."
-            ),
-
-            (
-                "Diagnosed and resolved spatial-reference conflicts, attribute "
-                "inconsistencies, schema problems, data-integrity errors, and enterprise "
-                "geodatabase workflow issues affecting production GIS environments."
-            ),
-
-            (
-                "Documented defects, reproduction steps, severity, corrective actions, "
-                "and validation evidence for product and engineering teams."
-            ),
-
-            (
-                "Authored technical guides and knowledge-base articles and worked "
-                "remotely across time zones with consistent independent delivery and "
-                "cross-functional collaboration."
-            ),
-        ],
-    },
-
-    {
-        "title":
-            "Spatial Data Analyst",
-
-        "organization":
-            "REGID Carbon Limited",
-
-        "location":
-            "Nairobi, Kenya",
-
-        "dates":
-            "March 2023 - May 2023",
-
-        "bullets": [
-            (
-                "Analyzed, classified, and validated georeferenced data and "
-                "satellite-derived outputs for ecosystem-restoration and "
-                "carbon-accounting projects across Kenya, Zimbabwe, and Senegal, "
-                "maintaining accuracy, traceability, and documentation standards."
-            ),
-
-            (
-                "Applied Earth Observation and change-detection techniques to assess "
-                "deforestation, land-use transitions, and environmental change."
-            ),
-        ],
-    },
-]
-
-
-SELECTED_EXPERTISE = [
-    {
-        "title":
-            "Spatial Strategies for Peace",
-
-        "body":
-            (
-                "Applied spatial analysis to armed-group activity, cross-border "
-                "movement, and displacement patterns in urban and peri-urban areas "
-                "of Eastern Democratic Republic of the Congo through research with "
-                "the Harvard Humanitarian Initiative."
-            ),
-    },
-
-    {
-        "title":
-            "Geospatial Research & Applied Remote Sensing",
-
-        "body":
-            (
-                "Research experience spans NOAA ROV dive-track modelling, "
-                "Fall Armyworm spread mapping, land-use change monitoring, "
-                "and satellite-based flood classification with ArcGIS Pro and Python."
-            ),
-
-        "url":
-            "https://github.com/figmulberry/classifying-flood-imagery",
-    },
-
-    {
-        "title":
-            "AI Training, Evaluation & Quality Assurance",
-
-        "body":
-            (
-                "Experience evaluating AI-generated outputs against detailed rubrics "
-                "and technical standards, producing structured feedback, documenting "
-                "quality issues, developing prompts and workflows, and supporting "
-                "consistent model-training and evaluation processes."
-            ),
-    },
-]
-
-
-EDUCATION = [
-    {
-        "degree":
-            "MSc, Geographic Information Science (GIS) and Cartography",
-
-        "date":
-            "December 2019",
-
-        "institution":
-            "University of Redlands",
-
-        "location":
-            "Redlands, CA, USA",
-
-        "research":
-            (
-                "Spatial Representation of NOAA's Remotely Operated "
-                "Vehicles (ROVs) Dive Tracks"
-            ),
-
-        "award":
-            "Jack Dangermond GIS Scholarship",
-    },
-
-    {
-        "degree":
-            "Bachelor of Environmental Planning and Management",
-
-        "date":
-            "December 2018",
-
-        "institution":
-            "Kenyatta University",
-
-        "location":
-            "Nairobi, Kenya",
-
-        "research":
-            (
-                "Mapping the 2017 spreading pattern of Fall Armyworm "
-                "(Spodoptera frugiperda) and its implications on maize "
-                "in Molo, Nakuru County"
-            ),
-
-        "award":
-            "Esri 2018 GIS Young Scholar Award",
-    },
-]
-
-
-CERTIFICATIONS = [
-    (
-        "Esri",
-        "ArcGIS Pro Associate 2101",
-        "June 2022",
-        (
-            "https://www.credly.com/badges/"
-            "9c49ad3f-a230-4e66-9fe5-17792f023940"
-            "?source=linked_in_profile"
-        ),
-    ),
-
-    (
-        "Anthropic",
-        "Claude Code 101",
-        "August 2026",
-        "https://verify.skilljar.com/c/kxnfcww9ygr7",
-    ),
-
-    (
-        "SurveyCTO Academy",
-        "Foundations of SurveyCTO",
-        "April 2026",
-        "https://mycourse.app/v1V4tiESwCoxPX3mp",
-    ),
-
-    (
-        "FAO",
-        "Global Forest Resources Assessment 2025",
-        "March 2026",
-        (
-            "https://elearning.fao.org/admin/tool/certificate/"
-            "index.php?code=9261867005MT"
-        ),
-    ),
-
-    (
-        "McKinsey & Company",
-        "McKinsey.org Forward Program",
-        "December 2025",
-        (
-            "https://www.credly.com/badges/"
-            "6e9453e8-5125-4f8a-a6ac-071dc0e359a3/"
-            "linked_in_profile"
-        ),
-    ),
-
-    (
-        "The World Bank Group",
-        "Documenting Development Data Using Metadata Standards",
-        "December 2025",
-        "https://mycourse.app/fyYRWRbCCilGgYYwn",
-    ),
-
-    (
-        "Cisco",
-        "Introduction to Modern AI",
-        "August 2025",
-        (
-            "https://www.credly.com/badges/"
-            "cf35c4e9-47ab-499b-8c8f-e74e0b015d8b/"
-            "linked_in_profile"
-        ),
-    ),
-
-    (
-        "Google",
-        "Foundations of Project Management",
-        "December 2022",
-        (
-            "https://www.coursera.org/account/"
-            "accomplishments/records/VCXS3JJT4QSS"
-        ),
-    ),
-]
+CERTIFICATIONS = certifications_for_pdf(
+    CV_DATA["credentials"]
+)
 
 
 # =========================================================
@@ -923,7 +748,12 @@ def section(
 def experience_block(
     role: dict,
 ):
-    items = [
+    bullets = role.get(
+        "bullets",
+        [],
+    )
+
+    opening = [
         Paragraph(
             safe(
                 role["title"]
@@ -941,9 +771,21 @@ def experience_block(
         ),
     ]
 
-    for bullet in role[
-        "bullets"
-    ]:
+    if bullets:
+        opening.append(
+            Paragraph(
+                f"• {safe(bullets[0])}",
+                BULLET,
+            )
+        )
+
+    items = [
+        KeepTogether(
+            opening
+        )
+    ]
+
+    for bullet in bullets[1:]:
         items.append(
             Paragraph(
                 f"• {safe(bullet)}",
@@ -958,10 +800,7 @@ def experience_block(
         )
     )
 
-    return KeepTogether(
-        items
-    )
-
+    return items
 
 def selected_expertise_block(
     item: dict,
@@ -1013,29 +852,95 @@ def education_block(
         "</font>"
     )
 
-    return KeepTogether(
-        [
-            Paragraph(
-                degree_line,
-                EDUCATION_TITLE,
-            ),
+    opening = [
+        Paragraph(
+            degree_line,
+            EDUCATION_TITLE,
+        ),
 
+        Paragraph(
+            (
+                f"{safe(item['institution'])} | "
+                f"{safe(item['location'])}"
+            ),
+            EDUCATION_META,
+        ),
+    ]
+
+    items = [
+        KeepTogether(
+            opening
+        )
+    ]
+
+    research = item.get(
+        "research"
+    )
+
+    if research:
+        research_text = safe(
+            research["label"]
+        )
+
+        if research.get(
+            "url"
+        ):
+            research_text = linked(
+                research["label"],
+                research["url"],
+            )
+
+        items.append(
             Paragraph(
                 (
-                    f"{safe(item['institution'])} | "
-                    f"{safe(item['location'])}"
-                ),
-                EDUCATION_META,
-            ),
-
-            Paragraph(
-                (
-                    "<b>Research:</b> "
-                    f"<i>{safe(item['research'])}</i>"
+                    f"<b>{safe(item['research_label'])}:</b> "
+                    f"<i>{research_text}</i>"
                 ),
                 EDUCATION_RESEARCH,
-            ),
+            )
+        )
 
+    advisors = item.get(
+        "advisors",
+        [],
+    )
+
+    if advisors:
+        advisor_links = []
+
+        for advisor in advisors:
+            if advisor.get(
+                "url"
+            ):
+                advisor_links.append(
+                    linked(
+                        advisor["label"],
+                        advisor["url"],
+                    )
+                )
+            else:
+                advisor_links.append(
+                    safe(
+                        advisor["label"]
+                    )
+                )
+
+        items.append(
+            Paragraph(
+                (
+                    f"<b>{safe(item['advisor_label'])}:</b> "
+                    + " · ".join(
+                        advisor_links
+                    )
+                ),
+                EDUCATION_META,
+            )
+        )
+
+    if item.get(
+        "award"
+    ):
+        items.append(
             Paragraph(
                 (
                     "<i>"
@@ -1043,19 +948,17 @@ def education_block(
                     "</i>"
                 ),
                 EDUCATION_AWARD,
-            ),
+            )
+        )
 
-            Spacer(
-                1,
-                4,
-            ),
-        ]
+    items.append(
+        Spacer(
+            1,
+            4,
+        )
     )
 
-
-# =========================================================
-# FOOTER
-# =========================================================
+    return items
 
 def draw_footer(
     canvas,
@@ -1191,12 +1094,9 @@ doc = BaseDocTemplate(
     rightMargin=RIGHT_MARGIN,
     topMargin=TOP_MARGIN,
     bottomMargin=BOTTOM_MARGIN,
-    title="Moses Thiong'o - Curriculum Vitae",
-    author="Moses Thiong'o",
-    subject=(
-        "Geospatial Intelligence, GIS & Spatial Data, "
-        "Data Analytics, GeoAI, and AI Training & Evaluation"
-    ),
+    title=f"{PROFILE['name']} - Curriculum Vitae",
+    author=PROFILE["name"],
+    subject=CV_DATA["profile"]["headline"],
 )
 
 
@@ -1244,7 +1144,7 @@ story = []
 
 story.append(
     Paragraph(
-        "MOSES THIONG'O",
+        safe(PROFILE["name"].upper()),
         NAME,
     )
 )
@@ -1258,9 +1158,8 @@ story.append(
 
 story.append(
     Paragraph(
-        (
-            "Geospatial Intelligence | GIS &amp; Spatial Data | "
-            "Data Analytics | GeoAI | AI Training &amp; Evaluation"
+        safe(
+            CV_DATA["profile"]["headline"]
         ),
         HEADLINE,
     )
@@ -1269,10 +1168,12 @@ story.append(
 story.append(
     Paragraph(
         (
-            "Nairobi, Kenya"
-            " | "
+            safe(
+                PROFILE["location"]
+            )
+            + " | "
             + linked(
-                "kamusaley@gmail.com",
+                PROFILE_LINKS["email"]["label"],
                 LINKS["email"],
             )
             + " | "
@@ -1300,12 +1201,18 @@ story.append(
     )
 )
 
+language_text = ", ".join(
+    (
+        f"{item['name']} "
+        f"({item['proficiency']})"
+    )
+    for item in CV_DATA["languages"]
+)
+
 story.append(
     Paragraph(
-        (
-            "English (Fluent), "
-            "Swahili (Fluent), "
-            "Gikuyu (Native)"
+        safe(
+            language_text
         ),
         LANGUAGES,
     )
@@ -1356,7 +1263,7 @@ story.append(
 
 story.extend(
     section(
-        "Core GIS, Data & AI Expertise"
+        "Core Professional Expertise"
     )
 )
 
@@ -1384,13 +1291,12 @@ story.extend(
     )
 )
 
-
-# First role
-story.append(
-    experience_block(
-        EXPERIENCE[0]
+for role in EXPERIENCE:
+    story.extend(
+        experience_block(
+            role
+        )
     )
-)
 
 
 # ---------------------------------------------------------
@@ -1403,47 +1309,50 @@ story.extend(
     )
 )
 
-for item in (
-    SELECTED_EXPERTISE
-):
+for item in SELECTED_EXPERTISE:
     story.append(
         selected_expertise_block(
             item
         )
     )
 
-
-# Continue professional experience in natural document flow.
-for role in (
-    EXPERIENCE[1:]
-):
-    story.append(
-        experience_block(
-            role
-        )
-    )
-
-
 # ---------------------------------------------------------
 # EDUCATION
 # ---------------------------------------------------------
 
-story.extend(
-    section(
-        "Education"
+if EDUCATION:
+    first_education = education_block(
+        EDUCATION[0]
     )
-)
 
-for item in EDUCATION:
+    education_opening = (
+        section(
+            "Education"
+        )
+        + [
+            first_education[0]
+        ]
+    )
+
     story.append(
-        education_block(
-            item
+        KeepTogether(
+            education_opening
         )
     )
 
+    story.extend(
+        first_education[1:]
+    )
 
-# ---------------------------------------------------------
-# SELECTED CERTIFICATIONS
+    for item in EDUCATION[1:]:
+        story.extend(
+            education_block(
+                item
+            )
+        )
+
+
+# ---------------------------------------------------------# SELECTED CERTIFICATIONS
 # ---------------------------------------------------------
 
 story.extend(

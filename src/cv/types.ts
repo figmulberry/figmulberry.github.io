@@ -21,8 +21,10 @@ export type CVEducation = {
   institution: string;
   location: string;
   completedAt: string;
-  thesisOrProject?: string;
-  advisors?: string[];
+  thesisOrProject?: CVLink;
+  thesisOrProjectLabel?: string;
+  advisors?: CVLink[];
+  advisorLabel?: string;
   award?: string;
 };
 

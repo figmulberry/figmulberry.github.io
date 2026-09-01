@@ -435,12 +435,7 @@ function PageOne() {
                     </p>
 
                     <ul className="mt-3 space-y-1.5">
-                      {role.highlights
-                        .slice(
-                          0,
-                          4,
-                        )
-                        .map(
+                      {role.highlights.map(
                           (
                             highlight,
                           ) => (
@@ -605,14 +600,36 @@ function PageTwo() {
                   {item.thesisOrProject && (
                     <p className="mt-2 text-[0.82rem] leading-5 text-muted-foreground">
                       <span className="font-semibold text-foreground">
-                        Research:
+                        {item.thesisOrProjectLabel ??
+                          'Research'}
+                        :
                       </span>{' '}
 
-                      <span className="italic">
-                        {
-                          item.thesisOrProject
-                        }
-                      </span>
+                      {item.thesisOrProject.url ? (
+                        <a
+                          href={
+                            item.thesisOrProject
+                              .url
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="italic transition-colors hover:text-accent"
+                        >
+                          {
+                            item
+                              .thesisOrProject
+                              .label
+                          }
+                        </a>
+                      ) : (
+                        <span className="italic">
+                          {
+                            item
+                              .thesisOrProject
+                              .label
+                          }
+                        </span>
+                      )}
                     </p>
                   )}
 
@@ -621,17 +638,41 @@ function PageTwo() {
                       0 && (
                     <p className="mt-1.5 text-[0.78rem] leading-5 text-muted-foreground">
                       <span className="font-medium text-foreground">
-                        Advisor
-                        {item.advisors
-                            .length >
+                        {item.advisorLabel ??
+                          (item.advisors.length >
                           1
-                          ? 's'
-                          : ''}
+                            ? 'Advisors'
+                            : 'Advisor')}
                         :
                       </span>{' '}
 
-                      {item.advisors.join(
-                        ', ',
+                      {item.advisors.map(
+                        (
+                          advisor,
+                          index,
+                        ) => (
+                          <span
+                            key={
+                              advisor.label
+                            }
+                          >
+                            {index > 0 &&
+                              ' · '}
+
+                            <a
+                              href={
+                                advisor.url
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="transition-colors hover:text-accent"
+                            >
+                              {
+                                advisor.label
+                              }
+                            </a>
+                          </span>
+                        ),
                       )}
                     </p>
                   )}

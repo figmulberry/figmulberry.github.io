@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build && node scripts/postbuild.mjs",
+    "build": "npm run build:cv && vite build && node scripts/postbuild.mjs",
+    "build:cv": "python scripts/cv/build-cv-pdf.py",
     "preview": "vite preview --host 0.0.0.0",
     "typecheck": "tsc --noEmit"
   },

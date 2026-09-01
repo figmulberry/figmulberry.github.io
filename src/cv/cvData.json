@@ -1,0 +1,576 @@
+{
+    "lastUpdated":  "2026-09-01",
+    "profile":  {
+                    "name":  "Moses Thiong\u0027o",
+                    "headline":  "Geospatial Science | Earth Observation | Data Analytics | Applied Research | AI Training \u0026 Evaluation | Decision Support",
+                    "location":  "Nairobi, Kenya",
+                    "summary":  "A multidisciplinary technical professional with experience spanning food systems, geospatial science, Earth observation, data analytics, applied research, AI evaluation and development-focused decision support. Combines advanced spatial and quantitative methods with domain knowledge across agriculture, natural resources, climate resilience, infrastructure and environmental systems to translate complex evidence into practical planning and investment decisions. Experienced in designing reproducible analytical workflows; integrating geospatial, Earth observation, environmental, climate, disaster-risk, agricultural and socio-economic datasets; developing decision-support products; and communicating technical findings through maps, dashboards, research and technical documentation. Brings together analytical depth, systems thinking and hands-on technical execution across research, programme and technology environments.",
+                    "researchInterests":  [
+                                              "Food Systems Analysis",
+                                              "Food Security \u0026 Sustainable Livelihoods",
+                                              "Climate Adaptation \u0026 Resilience Planning",
+                                              "Landscape Restoration \u0026 Biodiversity Conservation",
+                                              "Urban \u0026 Rural Infrastructure Planning",
+                                              "Marine Spatial Planning",
+                                              "Earth Observation for Environmental \u0026 Agricultural Systems",
+                                              "Reproducible Analytical Methods \u0026 Decision-Support Systems"
+                                          ],
+                    "links":  {
+                                  "website":  {
+                                                  "label":  "Website",
+                                                  "url":  "https://figmulberry.github.io/"
+                                              },
+                                  "linkedin":  {
+                                                   "label":  "LinkedIn",
+                                                   "url":  "https://www.linkedin.com/in/mkthiongo/"
+                                               },
+                                  "github":  {
+                                                 "label":  "GitHub",
+                                                 "url":  "https://github.com/figmulberry"
+                                             },
+                                  "youtube":  {
+                                                  "label":  "YouTube",
+                                                  "url":  "https://www.youtube.com/@thekalabashmosaics"
+                                              },
+                                  "instagram":  {
+                                                    "label":  "Instagram",
+                                                    "url":  "https://www.instagram.com/musathiongo"
+                                                },
+                                  "orcid":  {
+                                                "label":  "ORCID",
+                                                "url":  "https://orcid.org/0009-0005-4301-9507"
+                                            },
+                                  "email":  {
+                                                "label":  "kamusaley@gmail.com",
+                                                "url":  "mailto:kamusaley@gmail.com"
+                                            }
+                              }
+                },
+    "experience":  [
+                       {
+                           "id":  "micro1-qgis-expert-ai-trainer",
+                           "title":  "QGIS Expert and AI Trainer",
+                           "organization":  "Micro1 Inc.",
+                           "location":  "Remote",
+                           "startDate":  "2026-04",
+                           "endDate":  "2026-07",
+                           "highlights":  [
+                                              "Led end-to-end GIS projects covering spatial data acquisition, cleaning, validation, coordinate systems, geoprocessing, symbology, cartographic layout production, and final-output quality.",
+                                              "Reviewed source datasets and geospatial outputs against technical requirements, identifying attribute, geometry, CRS, classification, completeness, and consistency issues.",
+                                              "Validated maps and datasets through source-to-output reconciliation, feature and extent checks, coordinate-system verification, output inspection, and reproducible quality-assurance procedures.",
+                                              "Created workflow guides, QA checklists, reviewer notes, and troubleshooting records that made technical decisions traceable and repeatable.",
+                                              "Managed multiple technical deliverables independently while collaborating with distributed project teams.",
+                                              "Performed human validation of AI-generated technical tasks across specialist application environments, extending evaluation work beyond GIS into Microsoft 365, LibrePCB and Qucs-S, and assessing outputs for correctness, completeness, reproducibility and adherence to application-specific requirements.",
+                                              "Developed, wrote and validated end-to-end deterministic technical tasks and evaluation rubrics for Microsoft 365, LibrePCB and Qucs-S against detailed quality and execution requirements."
+                                          ]
+                       },
+                       {
+                           "id":  "world-vision-thrive-2030",
+                           "title":  "GIS Specialist, THRIVE 2030 Kenya Project",
+                           "organization":  "World Vision International",
+                           "location":  "Nairobi, Kenya",
+                           "startDate":  "2024-06",
+                           "endDate":  "2026-01",
+                           "highlights":  [
+                                              "Worked closely with the Design, Monitoring, Evaluation, Accountability and Learning team on programme monitoring, donor reporting, national planning, integrated data infrastructure, and evidence-based decision support.",
+                                              "Designed and managed GIS infrastructure combining household, environmental, land-use, and spatial datasets for more than 300,000 households.",
+                                              "Managed version control and change tracking across large spatial datasets and reporting documents, strengthening consistency, traceability, and quality across programme cycles.",
+                                              "Validated GPS and field records, investigated location and attribute inconsistencies, and produced corrected datasets, maps, dashboards, and analytical outputs.",
+                                              "Trained more than 70 field staff and developed step-by-step guidance to improve field data collection, validation, documentation, and geolocation accuracy.",
+                                              "Designed and deployed an ArcGIS Experience Builder application with embedded dashboards to support near-real-time visualization and programme decision-making.",
+                                              "Produced thematic maps, analytical reports, visualizations, and spatial evidence for donor reporting and stakeholder engagement.",
+                                              "Co-produced national vulnerability and risk maps integrating environmental indicators, disaster-risk data and household-level exposure information to support FY26–FY30 planning and geographic prioritization."
+                                          ]
+                       },
+                       {
+                           "id":  "un-habitat-urban-planner-gis",
+                           "title":  "Urban Planner and GIS Analyst",
+                           "organization":  "United Nations Human Settlements Programme (UN-Habitat)",
+                           "location":  "Nairobi, Kenya",
+                           "startDate":  "2023-05",
+                           "endDate":  "2023-11",
+                           "highlights":  [
+                                              "Reviewed, integrated, and validated multi-source topographic, land-cover, socioeconomic, road, boundary, and coastal-planning datasets.",
+                                              "Applied metadata, classification, and data-quality standards across planning datasets.",
+                                              "Produced thematic maps supporting Local Physical and Land Use Development Plans and evidence-based urban planning.",
+                                              "Developed and maintained a Spatial Data Hub and ArcGIS Dashboard for stakeholder engagement, data sharing, programme reporting, and evidence-based planning.",
+                                              "Designed GIS database structures and organized spatial datasets for efficient retrieval, reporting, and stakeholder delivery.",
+                                              "Produced maps, spatial outputs, workflow documentation, and technical briefs for cross-functional urban, coastal, and infrastructure-planning teams."
+                                          ]
+                       },
+                       {
+                           "id":  "regid-carbon-spatial-data-analyst",
+                           "title":  "Spatial Data Analyst",
+                           "organization":  "REGID Carbon Limited",
+                           "location":  "Nairobi, Kenya",
+                           "startDate":  "2023-03",
+                           "endDate":  "2023-05",
+                           "highlights":  [
+                                              "Analyzed, classified, and validated georeferenced data and satellite-derived outputs for ecosystem-restoration and carbon-accounting projects.",
+                                              "Applied Earth Observation and change-detection techniques to assess deforestation, land-use transitions, and environmental change.",
+                                              "Supported work across Kenya, Zimbabwe, and Senegal while maintaining accuracy, traceability, and documentation standards."
+                                          ]
+                       },
+                       {
+                           "id":  "esri-gis-analyst",
+                           "title":  "GIS Analyst",
+                           "organization":  "Environmental Systems Research Institute (Esri)",
+                           "location":  "Redlands, California, USA",
+                           "startDate":  "2020-02",
+                           "endDate":  "2023-02",
+                           "highlights":  [
+                                              "Supported global users of ArcGIS Pro, ArcGIS Enterprise, ArcMap, and ArcGIS Online across infrastructure, land-management, environmental-monitoring, and related sectors.",
+                                              "Reviewed technical cases, user-provided datasets, geodatabases, diagnostic information, and workflow descriptions to reproduce issues and isolate root causes.",
+                                              "Diagnosed and resolved spatial-reference conflicts, attribute inconsistencies, schema problems, data-integrity errors, and enterprise-geodatabase workflow issues.",
+                                              "Resolved a substantial share of weekly GIS support cases while contributing to standardized troubleshooting and technical-support workflows.",
+                                              "Documented defects, reproduction steps, severity, corrective actions, and validation evidence for product and engineering teams.",
+                                              "Led and contributed to cartographic quality-assurance efforts supporting consistent, high-quality map outputs.",
+                                              "Authored technical guides and knowledge-base articles while delivering work independently across distributed time zones."
+                                          ]
+                       }
+                   ],
+    "education":  [
+                      {
+                          "id":  "university-redlands-msc-gis",
+                          "qualification":  "MSc, Geographic Information Science (GIS) and Cartography",
+                          "institution":  "University of Redlands",
+                          "location":  "Redlands, California, USA",
+                          "completedAt":  "2019-12",
+                          "thesisOrProject":  {
+                                                  "label":  "Spatial Representation of NOAA\u0027s Remotely Operated Vehicles (ROVs) Dive Tracks",
+                                                  "url":  "https://inspire.redlands.edu/works/publication-dissertation/szkeq-1fw85"
+                                              },
+                          "advisors":  [
+                                           {
+                                               "label":  "Mark Kumler, Ph.D.",
+                                               "url":  "https://www.redlands.edu/faculty-and-staff-directory/geographic-information-science/mark-kumler"
+                                           },
+                                           {
+                                               "label":  "Douglas Flewelling, Ph.D.",
+                                               "url":  "https://www.redlands.edu/faculty-and-staff-directory/geographic-information-science/douglas-flewelling"
+                                           }
+                                       ],
+                          "award":  "Jack Dangermond GIS Scholarship",
+                          "thesisOrProjectLabel":  "Thesis",
+                          "advisorLabel":  "Advisors"
+                      },
+                      {
+                          "id":  "kenyatta-university-environmental-planning",
+                          "qualification":  "Bachelor of Environmental Planning and Management",
+                          "institution":  "Kenyatta University",
+                          "location":  "Nairobi, Kenya",
+                          "completedAt":  "2018-12",
+                          "thesisOrProject":  {
+                                                  "label":  "Mapping the 2017 spreading pattern of Fall Armyworm (Spodoptera frugiperda) and its implications on maize in Molo, Nakuru County",
+                                                  "url":  ""
+                                              },
+                          "advisors":  [
+                                           {
+                                               "label":  "Prof. Simon Mang\u0027erere Onywere, Ph.D.",
+                                               "url":  "https://engineering-architecture.ku.ac.ke/all-categories/faculty/prof-onywere-simon-mang-erere-phd"
+                                           }
+                                       ],
+                          "award":  "Esri 2018 GIS Young Scholar Award",
+                          "thesisOrProjectLabel":  "Research",
+                          "advisorLabel":  "Project Supervisor"
+                      }
+                  ],
+    "researchProjects":  [
+                             {
+                                 "id":  "amazon-br163-forest-change-pyeo",
+                                 "title":  "Monitoring Forest Change along Amazon BR-163 with PyEO",
+                                 "organization":  "Independent Geospatial Research Project",
+                                 "location":  "Brazilian Amazon, Brazil",
+                                 "startDate":  "2026-07",
+                                 "endDate":  "2026-07",
+                                 "description":  "Developed a reproducible Sentinel-2 forest-change monitoring workflow combining PyEO, machine-learning classification, multi-date change detection, vector GIS processing, administrative enrichment, and structured quality assurance for the Amazon BR-163 corridor.",
+                                 "url":  "https://figmulberry.github.io/portfolio/amazon-br163-forest-change-pyeo/"
+                             },
+                             {
+                                 "id":  "hhi-spatial-strategies-peace",
+                                 "title":  "Research on Spatial Strategies for Peace",
+                                 "organization":  "Harvard Humanitarian Initiative",
+                                 "location":  "Virtual",
+                                 "startDate":  "2024-08",
+                                 "endDate":  "2024-09",
+                                 "description":  "Applied spatial analysis to armed-group activity, cross-border movement, and displacement patterns in urban and peri-urban areas of Eastern Democratic Republic of the Congo, including Goma, to examine overlooked population flows and spatial dimensions of conflict.",
+                                 "url":  "https://www.youtube.com/watch?v=KqJG7Xi4EFo\u0026t=3645s"
+                             },
+                             {
+                                 "id":  "flood-imagery-python",
+                                 "title":  "Classify Flooding in Imagery with Python",
+                                 "organization":  "Independent Research Project",
+                                 "location":  "Nairobi, Kenya",
+                                 "startDate":  "2024-07",
+                                 "endDate":  "2024-07",
+                                 "description":  "Developed an ArcGIS Pro and Python workflow for classifying flooded areas from satellite imagery, combining remote sensing and geospatial analysis for flood-pattern identification and climate-risk applications.",
+                                 "url":  "https://github.com/figmulberry/classifying-flood-imagery"
+                             },
+                             {
+                                 "id":  "regid-land-use-change",
+                                 "title":  "Land Use Change Monitoring",
+                                 "organization":  "REGID Carbon Limited",
+                                 "location":  "Kenya and regional projects",
+                                 "startDate":  "2023-03",
+                                 "endDate":  "2023-05",
+                                 "description":  "Applied Earth Observation and change-detection techniques to assess deforestation, land-use transitions, and environmental change for nature-based climate and environmental projects."
+                             },
+                             {
+                                 "id":  "noaa-rov-dive-tracks",
+                                 "title":  "Spatial Representation of NOAA\u0027s ROV Dive Tracks",
+                                 "organization":  "University of Redlands",
+                                 "location":  "Redlands, California, USA",
+                                 "description":  "Organized, processed, and modeled NOAA remotely operated vehicle dive-track data, including development of custom geoprocessing approaches for converting and representing spatial coverage.",
+                                 "url":  "https://inspire.redlands.edu/works/publication-dissertation/szkeq-1fw85"
+                             },
+                             {
+                                 "id":  "fall-armyworm-spread",
+                                 "title":  "Fall Armyworm Spread Mapping",
+                                 "organization":  "Kenyatta University",
+                                 "location":  "Nairobi, Kenya",
+                                 "startDate":  "2017-06",
+                                 "endDate":  "2017-11",
+                                 "description":  "Modeled Fall Armyworm spread and its implications for maize production using spatial analysis, supporting applied agricultural planning and geospatial research."
+                             }
+                         ],
+    "publications":  [
+                         {
+                             "id":  "publication-rov-thesis",
+                             "citation":  "Thiong\u0027o, M.K. (2020). Spatial Representation of NOAA\u0027s Remotely Operated Vehicles (ROVs) Dive Tracks. Master\u0027s thesis, University of Redlands.",
+                             "year":  "2020",
+                             "type":  "thesis",
+                             "url":  "https://inspire.redlands.edu/works/publication-dissertation/szkeq-1fw85"
+                         },
+                         {
+                             "id":  "publication-flood-imagery-software",
+                             "citation":  "Thiong\u0027o, M.K. (2024). Classify Flooding in Imagery with Python [Computer software]. GitHub.",
+                             "year":  "2024",
+                             "type":  "software",
+                             "url":  "https://github.com/figmulberry/classifying-flood-imagery"
+                         }
+                     ],
+    "presentations":  [
+                          {
+                              "id":  "hhi-spatial-strategies-peace-presentation",
+                              "title":  "Spatial Strategies for Peace",
+                              "organization":  "Harvard Humanitarian Initiative",
+                              "event":  "Spatial Strategies for Peace Conference",
+                              "location":  "Virtual",
+                              "date":  "2024-09",
+                              "type":  "conference-presentation",
+                              "description":  "Presented research findings on urban and peri-urban displacement in Eastern Democratic Republic of the Congo, highlighting spatial analysis, research communication, and interdisciplinary knowledge translation."
+                          },
+                          {
+                              "id":  "la-geospatial-summit",
+                              "title":  "Spatial Representation of NOAA\u0027s ROV Dive Tracks",
+                              "organization":  "USC Dornsife Spatial Sciences Institute",
+                              "event":  "Los Angeles Geospatial Summit",
+                              "location":  "Los Angeles, California, USA",
+                              "date":  "2020-01",
+                              "type":  "poster",
+                              "description":  "Presented thesis research on NOAA ROV dive tracks, including custom geoprocessing, data structuring, and geospatial visualization."
+                          },
+                          {
+                              "id":  "esri-map-gallery-2019",
+                              "title":  "Spatial Representation of NOAA\u0027s ROV Dive Tracks",
+                              "organization":  "Esri",
+                              "event":  "Esri User Conference Map Gallery",
+                              "location":  "San Diego, California, USA",
+                              "date":  "2019-07",
+                              "type":  "poster",
+                              "description":  "Featured graduate research on NOAA ROV dive tracks, demonstrating applied spatial analysis and custom geoprocessing approaches."
+                          },
+                          {
+                              "id":  "esri-young-scholar-2018",
+                              "title":  "Fall Armyworm Spatial Spread",
+                              "organization":  "Esri",
+                              "event":  "Esri User Conference Young Scholars Map Gallery",
+                              "location":  "San Diego, California, USA",
+                              "date":  "2018-07",
+                              "type":  "poster",
+                              "description":  "Presented research on Fall Armyworm spatial spread as part of the Esri Young Scholar Award recognition."
+                          }
+                      ],
+    "teaching":  [
+                     {
+                         "id":  "kenyatta-gis-trainer",
+                         "role":  "Occasional GIS Trainer",
+                         "organization":  "Kenyatta University",
+                         "location":  "Nairobi, Kenya",
+                         "startDate":  "2024-01",
+                         "current":  true,
+                         "description":  "Delivered occasional GIS training sessions to undergraduate students covering spatial analysis, mapping techniques, and geoprocessing workflows through practical exercises and technical mentorship."
+                     }
+                 ],
+    "leadership":  [
+                       {
+                           "id":  "kenyatta-gis-capacity-building",
+                           "role":  "GIS Trainer",
+                           "organization":  "Kenyatta University, Department of Environmental Planning and Management",
+                           "period":  "2022 – Present",
+                           "description":  "Contributed to student GIS capacity-building workshops and practical geospatial learning."
+                       },
+                       {
+                           "id":  "world-vision-mentorship",
+                           "role":  "Mentor",
+                           "organization":  "World Vision Kenya, DMEAL – THRIVE 2030 Kenya Project",
+                           "period":  "2024 – 2026",
+                           "description":  "Supported mentorship of attachés and capacity development within GIS and DMEAL-related work."
+                       }
+                   ],
+    "credentials":  [
+                        {
+                            "id":  "arcgis-pro-associate-2101",
+                            "issuer":  "Esri",
+                            "title":  "ArcGIS Pro Associate 2101",
+                            "completedAt":  "2022-06",
+                            "url":  "https://www.credly.com/badges/9c49ad3f-a230-4e66-9fe5-17792f023940?source=linked_in_profile",
+                            "featured":  true
+                        },
+                        {
+                            "id":  "claude-code-101",
+                            "issuer":  "Anthropic",
+                            "title":  "Claude Code 101",
+                            "completedAt":  "2026-08",
+                            "url":  "https://verify.skilljar.com/c/kxnfcww9ygr7",
+                            "featured":  true
+                        },
+                        {
+                            "id":  "foundations-surveycto",
+                            "issuer":  "SurveyCTO Academy",
+                            "title":  "Foundations of SurveyCTO",
+                            "completedAt":  "2026-04",
+                            "url":  "https://mycourse.app/v1V4tiESwCoxPX3mp",
+                            "featured":  true
+                        },
+                        {
+                            "id":  "global-forest-resources-assessment-2025",
+                            "issuer":  "FAO",
+                            "title":  "Global Forest Resources Assessment 2025",
+                            "completedAt":  "2026-03",
+                            "url":  "https://elearning.fao.org/admin/tool/certificate/index.php?code=9261867005MT",
+                            "featured":  true
+                        },
+                        {
+                            "id":  "mckinsey-forward",
+                            "issuer":  "McKinsey \u0026 Company",
+                            "title":  "McKinsey.org Forward Program",
+                            "completedAt":  "2025-12",
+                            "url":  "https://www.credly.com/badges/6e9453e8-5125-4f8a-a6ac-071dc0e359a3/linked_in_profile",
+                            "featured":  true
+                        },
+                        {
+                            "id":  "documenting-development-data",
+                            "issuer":  "The World Bank Group",
+                            "title":  "Documenting Development Data Using Metadata Standards",
+                            "completedAt":  "2025-12",
+                            "url":  "https://mycourse.app/fyYRWRbCCilGgYYwn",
+                            "featured":  true
+                        },
+                        {
+                            "id":  "introduction-modern-ai",
+                            "issuer":  "Cisco",
+                            "title":  "Introduction to Modern AI",
+                            "completedAt":  "2025-08",
+                            "url":  "https://www.credly.com/badges/cf35c4e9-47ab-499b-8c8f-e74e0b015d8b/linked_in_profile",
+                            "featured":  true
+                        },
+                        {
+                            "id":  "foundations-project-management",
+                            "issuer":  "Google",
+                            "title":  "Foundations of Project Management",
+                            "completedAt":  "2022-12",
+                            "url":  "https://www.coursera.org/account/accomplishments/records/VCXS3JJT4QSS",
+                            "featured":  true
+                        },
+                        {
+                            "id":  "exploratory-data-analysis-python-pandas",
+                            "issuer":  "Coursera",
+                            "title":  "Exploratory Data Analysis With Python and Pandas",
+                            "completedAt":  "2026-04",
+                            "url":  "https://www.coursera.org/account/accomplishments/records/CYS7EC7OPXI1",
+                            "featured":  false
+                        },
+                        {
+                            "id":  "sustainable-food-systems",
+                            "issuer":  "FAO",
+                            "title":  "Sustainable Food Systems: An Introduction",
+                            "completedAt":  "2026-03",
+                            "url":  "https://elearning.fao.org/admin/tool/certificate/index.php?code=7033537511MT",
+                            "featured":  false
+                        },
+                        {
+                            "id":  "creating-compelling-reports",
+                            "issuer":  "Cisco",
+                            "title":  "Creating Compelling Reports",
+                            "completedAt":  "2025-08",
+                            "url":  "https://www.credly.com/badges/36b3a83f-5522-4fbe-9f7a-233a586d9f21/linked_in_profile",
+                            "featured":  false
+                        },
+                        {
+                            "id":  "engaging-stakeholders-success",
+                            "issuer":  "Cisco",
+                            "title":  "Engaging Stakeholders for Success",
+                            "completedAt":  "2025-08",
+                            "url":  "https://www.credly.com/badges/8f2805de-5550-47ab-9543-6da57c0bfe69/linked_in_profile",
+                            "featured":  false
+                        },
+                        {
+                            "id":  "arcgis-desktop-associate-19001",
+                            "issuer":  "Esri",
+                            "title":  "ArcGIS Desktop Associate 19-001",
+                            "completedAt":  "2021-11",
+                            "url":  "https://www.credly.com/badges/ab535bc4-5560-4296-bab4-db26a903ca2e?source=linked_in_profile",
+                            "featured":  false
+                        }
+                    ],
+    "skillGroups":  [
+                        {
+                            "id":  "gis-platforms",
+                            "title":  "GIS Platforms",
+                            "skills":  [
+                                           "ArcGIS Pro",
+                                           "ArcGIS Enterprise",
+                                           "ArcGIS Online",
+                                           "ArcMap",
+                                           "QGIS",
+                                           "Survey123",
+                                           "ArcGIS Experience Builder",
+                                           "ArcGIS Dashboards"
+                                       ]
+                        },
+                        {
+                            "id":  "spatial-data-quality",
+                            "title":  "Spatial Data Quality",
+                            "skills":  [
+                                           "Attribute validation",
+                                           "Geometry validation",
+                                           "Coordinate systems",
+                                           "Projections",
+                                           "Spatial reference troubleshooting",
+                                           "Completeness review",
+                                           "Consistency review",
+                                           "Duplicate detection",
+                                           "Anomaly detection",
+                                           "Data correction"
+                                       ]
+                        },
+                        {
+                            "id":  "geodatabases-data-management",
+                            "title":  "Geodatabases \u0026 Data Management",
+                            "skills":  [
+                                           "ArcGIS geodatabases",
+                                           "Enterprise geodatabases",
+                                           "PostgreSQL",
+                                           "PostGIS",
+                                           "SQL",
+                                           "Data loading",
+                                           "Data interoperability",
+                                           "Metadata standards",
+                                           "Version control"
+                                       ]
+                        },
+                        {
+                            "id":  "mapping-analysis",
+                            "title":  "Mapping \u0026 Spatial Analysis",
+                            "skills":  [
+                                           "Vector analysis",
+                                           "Raster analysis",
+                                           "Geoprocessing",
+                                           "Remote sensing",
+                                           "Land-use analysis",
+                                           "Land-cover analysis",
+                                           "GPS field mapping",
+                                           "Map editing",
+                                           "Thematic cartography",
+                                           "Cartographic layouts",
+                                           "Dashboards"
+                                       ]
+                        },
+                        {
+                            "id":  "programming-automation",
+                            "title":  "Programming \u0026 Automation",
+                            "skills":  [
+                                           "Python",
+                                           "ArcPy",
+                                           "GeoPandas",
+                                           "Rasterio",
+                                           "R",
+                                           "SQL",
+                                           "Batch scripting",
+                                           "Reproducible GIS workflows"
+                                       ]
+                        },
+                        {
+                            "id":  "data-analytics",
+                            "title":  "Data Analytics \u0026 Visualization",
+                            "skills":  [
+                                           "Power BI",
+                                           "Tableau",
+                                           "ArcGIS Dashboards",
+                                           "Data visualization",
+                                           "Analytical reporting",
+                                           "Decision-support outputs"
+                                       ]
+                        },
+                        {
+                            "id":  "earth-observation",
+                            "title":  "Earth Observation \u0026 Environmental Analysis",
+                            "skills":  [
+                                           "Google Earth Engine",
+                                           "Sentinel-2",
+                                           "Copernicus",
+                                           "OpenEO",
+                                           "WEkEO",
+                                           "ClimateSERV",
+                                           "Change detection",
+                                           "Environmental monitoring"
+                                       ]
+                        },
+                        {
+                            "id":  "technical-delivery",
+                            "title":  "Technical Delivery",
+                            "skills":  [
+                                           "Quality assurance",
+                                           "Technical documentation",
+                                           "Workflow design",
+                                           "Knowledge-base writing",
+                                           "Training",
+                                           "Stakeholder communication",
+                                           "Remote collaboration",
+                                           "Cross-functional delivery"
+                                       ]
+                        }
+                    ],
+    "languages":  [
+                      {
+                          "name":  "English",
+                          "proficiency":  "Fluent"
+                      },
+                      {
+                          "name":  "Swahili",
+                          "proficiency":  "Fluent"
+                      },
+                      {
+                          "name":  "Gikuyu",
+                          "proficiency":  "Native"
+                      }
+                  ],
+    "selectedExpertise":  [
+                              {
+                                  "title":  "Spatial Strategies for Peace",
+                                  "body":  "Applied spatial analysis to armed-group activity, cross-border movement, and displacement patterns in urban and peri-urban areas of Eastern Democratic Republic of the Congo through research with the Harvard Humanitarian Initiative.",
+                                  "url":  ""
+                              },
+                              {
+                                  "title":  "Geospatial Research \u0026 Applied Remote Sensing",
+                                  "body":  "Research experience spans NOAA ROV dive-track modelling, Fall Armyworm spread mapping, land-use change monitoring, and satellite-based flood classification with ArcGIS Pro and Python.",
+                                  "url":  "https://github.com/figmulberry/classifying-flood-imagery"
+                              },
+                              {
+                                  "title":  "AI Training, Evaluation \u0026 Quality Assurance",
+                                  "body":  "Experience evaluating AI-generated outputs against detailed rubrics and technical standards, producing structured feedback, documenting quality issues, developing prompts and workflows, and supporting consistent model-training and evaluation processes.",
+                                  "url":  ""
+                              }
+                          ]
+}

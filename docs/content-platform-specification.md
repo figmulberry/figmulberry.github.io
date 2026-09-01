@@ -48,6 +48,27 @@ Pages, recommendations, related-content surfaces and other derived views should 
 
 Routine publication should not require editing every place where the content may appear.
 
+### CV single-source invariant
+
+The CV follows the same architecture rule.
+
+`src/cv/cvData.json` is the authoritative source for CV facts.
+
+The web CV and downloadable PDF are derived representations of that same data:
+
+- `src/pages/CV.tsx` renders the web CV.
+- `scripts/cv/build-cv-pdf.py` renders the branded downloadable PDF.
+- `src/cv/cvData.ts` is a typed adapter, not a second content source.
+- `public/downloads/Moses-Thiongo-CV.pdf` is a generated artifact.
+
+Professional Experience has strict content parity across web and PDF. All approved roles and all approved highlights must be represented in both outputs.
+
+Presentation and pagination may differ between web and PDF, but factual professional content must not silently diverge.
+
+The standing rule is: pagination adapts to content; content must not disappear to satisfy pagination.
+
+Detailed CV maintenance, build and recovery instructions are documented in `docs/site-maintenance-guide.md#cv`.
+
 ---
 
 ## Stable identity
